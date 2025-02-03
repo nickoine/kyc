@@ -1,5 +1,7 @@
-from kyc_project.kyc.accounts.core import Account
+# Internal
+from ... import Account
 
+# External
 from django.db import models
 
 
@@ -35,7 +37,7 @@ class Question(models.Model):
         return self.question_name
 
 # Responses Table
-class Response(models.Model):
+class UserResponse(models.Model):
 
     response_account = models.ForeignKey(Account, on_delete=models.CASCADE)  # Links response to an account
     response_questionnaire = models.ForeignKey(Questionnaire, on_delete=models.CASCADE)  # Links response to a questionnaire

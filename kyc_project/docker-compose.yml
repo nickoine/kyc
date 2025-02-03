@@ -1,18 +1,61 @@
-version: '3.8'
-
 services:
-  postgres:
+
+  db:
     image: postgres:15
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_DB: kyc
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-volumes:
-  postgres_data:
+  app:
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DATABASE_URL: ${DB_URL}
+      DJANGO_SETTINGS_MODULE: kyc.settings.dev
+    command: >
+      sh -c "while ! pg_isready -h db -p 5432 -U ${DB_USER} -d ${DB_NAME}; do sleep 1; done &&
+             python manage.py makemigrations app && 
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  volumes:
+    postgres_data:
+    jenkins_home:

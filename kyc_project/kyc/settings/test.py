@@ -12,7 +12,7 @@ DATABASES = {
         'NAME': config('TEST_DB_NAME', default='test_db'),
         'USER': config('TEST_DB_USER', default='test_dev'),
         'PASSWORD': config('TEST_DB_PASSWORD', default='password'),
-        'HOST': config('TEST_DB_HOST', default='localhost'),
+        'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('TEST_DB_PORT', default=5434),
     }
 }

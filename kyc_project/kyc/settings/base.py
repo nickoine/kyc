@@ -1,17 +1,23 @@
+import os
+import environ
 from pathlib import Path
-from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))  # Load from .env if exists
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='unsafe-secret-key')  # Replace for production!
+SECRET_KEY = env('SECRET_KEY', default='unsafe-secret-key')  # Replace for production!
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = env.bool('DEBUG', default=False)
 
 # Allowed hosts for the project
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost').split(',')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost'])
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -21,7 +27,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'kyc'
+
+    'kyc.accounts'
+    'kyc.questionnaires'
+    'kyc.roles'
 ]
 
 MIDDLEWARE = [
