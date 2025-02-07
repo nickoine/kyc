@@ -33,11 +33,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name="Created At",
         help_text="The timestamp when the user was created."
     )
-    user_is_active = models.BooleanField(
-        default=True,
-        verbose_name="Is Active",
-        help_text="Indicates whether the user is active."
-    )
 
     USERNAME_FIELD = 'user_email'
     objects = UserManager()
