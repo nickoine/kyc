@@ -1,5 +1,6 @@
 # External
 from __future__ import annotations
+from abc import ABC, abstractmethod
 import logging
 
 from django.db import models, transaction, IntegrityError, DatabaseError
@@ -7,7 +8,20 @@ from django.db import models, transaction, IntegrityError, DatabaseError
 logger = logging.getLogger(__name__)
 
 
-class BaseManager(models.Manager):
+class AbstractManager(ABC):
+    """Abstract manager for common query operations."""
+
+    @abstractmethod
+    def get_by_id(self, obj_id: int | str) -> object | None:
+        return self
+
+
+    @abstractmethod
+    def create_instance(self, **kwargs) -> object | None:
+        return self
+
+
+class BaseManager(AbstractManager, models.Manager):
     """Manager for common query operations."""
 
 
@@ -39,11 +53,61 @@ class BaseManager(models.Manager):
             logger.exception(f"Unexpected error while creating {self.model.__name__}: {e}")
         return None
 
+#
+# class UserManager(BaseManager):
+#     pass
+#
+#
+# class AccountsManager(BaseManager):
+#     pass
+#
+#
+# class AdminsManager(BaseManager):
+#     pass
+#
+#
+# class RolesManager(BaseManager):
+#     pass
+#
+#
+# class QuestionnairesManager(BaseManager):
+#     pass
+#
+#
+# class QuestionsManager(BaseManager):
+#     pass
+#
+#
+# class UserResponsesManager(BaseManager):
+#     pass
 
-class BaseModel(models.Model):
+
+class AbstractBase(ABC):
+
+
+    @abstractmethod
+    def save(self, *args, **kwargs) -> None:
+        """Forces child models to define save logic."""
+        pass
+
+
+    @abstractmethod
+    def update(self, **kwargs) -> None:
+        """Forces child models to define update logic."""
+        pass
+
+
+    @abstractmethod
+    def delete(self, *args, **kwargs) -> None:
+        """Forces child models to define delete logic."""
+        pass
+
+
+class BaseModel(models.Model, AbstractBase):
     """Abstract base model with common CRUD methods."""
 
-    objects = BaseManager() # Attach the custom manager
+     # Attach the custom manager
+    objects = BaseManager()
 
 
     class Meta:
