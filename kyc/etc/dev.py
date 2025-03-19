@@ -1,6 +1,4 @@
 from .base import *
-import subprocess
-import os
 
 # Development-specific settings
 DEBUG = True
@@ -17,6 +15,7 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', default=5432)
     }
 }
+
 
 # def ensure_postgres_container():
 #     try:

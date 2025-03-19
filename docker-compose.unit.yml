@@ -1,7 +1,0 @@
-services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-    command: python -m pytest tests/unit
