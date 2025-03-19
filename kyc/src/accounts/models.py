@@ -1,7 +1,6 @@
 # External
 from django.db import models
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin, Group, Permission
+from django.contrib.auth.models import AbstractUser, PermissionsMixin, Group, Permission
 
 # Internal
 from ...common.base_model import BaseModel
@@ -9,11 +8,12 @@ from ...etc import AUTH_USER_MODEL
 from .service import UserManager
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractUser, PermissionsMixin):
     """
     Represents a user in the system.
     Each user has a unique email address and is linked to a single account.
     """
+
     user_email = models.EmailField(
         unique=True,
         verbose_name="Email",

@@ -9,11 +9,11 @@ ALLOWED_HOSTS = ['*']  # Allow all hosts during testing
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('TEST_DB_NAME', default='test_db'),
-        'USER': config('TEST_DB_USER', default='test_dev'),
-        'PASSWORD': config('TEST_DB_PASSWORD', default='password'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('TEST_DB_PORT', default=5434),
+        'NAME': os.getenv('TEST_DB_NAME', default='test_db'),
+        'USER': os.getenv('TEST_DB_USER', default='test_dev'),
+        'PASSWORD': os.getenv('TEST_DB_PASSWORD', default='password'),
+        'HOST': os.getenv('DB_HOST', default='localhost'),
+        'PORT': os.getenv('TEST_DB_PORT', default=5434),
     }
 }
 

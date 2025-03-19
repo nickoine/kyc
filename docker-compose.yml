@@ -42,7 +42,7 @@ services:
 #      sh -c "python manage.py runserver ${BIND_HOST}:8000"
     command: >
       sh -c "while ! pg_isready -h db -p 5432 -U ${DB_USER} -d ${DB_NAME}; do sleep 1; done &&
-             python manage.py makemigrations accounts questionnaires responses &&
+             python manage.py makemigrations &
              python manage.py migrate &&
              python manage.py runserver ${BIND_HOST}:8000"
     ports:
