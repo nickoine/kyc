@@ -1,14 +1,13 @@
 # External
 from __future__ import annotations
+from typing import Optional, List
 from abc import ABC, abstractmethod
 
 import logging
-from typing import Optional
-
 logger = logging.getLogger(__name__)
 
-
 from django.db import models, transaction, IntegrityError, DatabaseError
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import QuerySet
 
 
@@ -37,8 +36,30 @@ class BaseManager(AbstractManager, models.Manager):
 
         try:
             return self.filter(id=obj_id).first()
+
+        except ObjectDoesNotExist:
+            return None
         except Exception as e:
+            self._log_error("Unexpected error during fetching", None, e, is_exception=True)
             raise ValueError(str(e)) from e
+
+
+    def get_all(self) -> QuerySet:
+        """Return all objects of the model."""
+
+        return self.all()
+
+
+    def filter_by(self, **filters) -> QuerySet:
+        """Return objects that match the given filters."""
+
+        return self.filter(**filters)
+
+
+    def exists(self, **filters) -> bool:
+        """Check if an object with given filters exists."""
+
+        return self.filter(**filters).exists()
 
 
     def create_instance(self, **kwargs) -> QuerySet | None:
@@ -62,6 +83,48 @@ class BaseManager(AbstractManager, models.Manager):
             self._log_error("Unexpected error", instance, e, is_exception=True)
 
         return None
+
+
+    def bulk_create_instances(self, objects: List[models.Model], batch_size: int = 100) -> None:
+        """Efficiently bulk create instances."""
+
+        if not objects:
+            return
+
+        try:
+            self.bulk_create(objects, batch_size=batch_size)
+
+        except IntegrityError as e:
+            self._log_error("IntegrityError during bulk_create", None, e)
+        except Exception as e:
+            self._log_error("Unexpected error during bulk_create", None, e, is_exception=True)
+
+
+    def bulk_update_instances(self, objects: List[models.Model], fields: List[str], batch_size: int = 100) -> None:
+        """Efficiently bulk update instances."""
+
+        if not objects or not fields:
+            return
+
+        try:
+            self.bulk_update(objects, fields, batch_size=batch_size)
+
+        except IntegrityError as e:
+            self._log_error("IntegrityError during bulk_update", None, e)
+        except Exception as e:
+            self._log_error("Unexpected error during bulk_update", None, e, is_exception=True)
+
+
+    def bulk_delete_instances(self, **filters) -> int:
+        """Delete multiple records matching the given filters."""
+
+        try:
+            deleted_count, _ = self.filter(**filters).delete()
+            return deleted_count
+
+        except Exception as e:
+            self._log_error("Error in bulk_delete", None, e, is_exception=True)
+            return 0
 
 
     def _log_error(self,
