@@ -1,14 +1,19 @@
 # External
 from __future__ import annotations
-from typing import Optional, List
-from abc import ABC, abstractmethod
+from django.db import transaction, IntegrityError, DatabaseError
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Model, Manager
 
+# Internal
+from abc import ABC, abstractmethod
 import logging
+
 logger = logging.getLogger(__name__)
 
-from django.db import models, transaction, IntegrityError, DatabaseError
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import QuerySet
+from typing import TYPE_CHECKING, Any, Dict
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
+    from typing import Optional, List
 
 
 class AbstractManager(ABC):
@@ -24,7 +29,7 @@ class AbstractManager(ABC):
         return self
 
 
-class BaseManager(AbstractManager, models.Manager):
+class BaseManager(AbstractManager, Manager):
     """Manager for common query operations."""
 
 
@@ -85,65 +90,112 @@ class BaseManager(AbstractManager, models.Manager):
         return None
 
 
-    def bulk_create_instances(self, objects: List[models.Model], batch_size: int = 100) -> None:
-        """Efficiently bulk create instances."""
+    def bulk_create_instances(self, objects: List[Model], batch_size: int = 100) -> Optional[List[Model], List[None]]:
+        """Bulk create instances and return the created objects."""
 
         if not objects:
-            return
+            return []
 
         try:
-            self.bulk_create(objects, batch_size=batch_size)
+            created_instances = self.bulk_create(objects, batch_size=batch_size)
+            return created_instances
 
         except IntegrityError as e:
-            self._log_error("IntegrityError during bulk_create", None, e)
+            self._log_error(f"IntegrityError during bulk_create {self.model.__name__}", None, e)
+
         except Exception as e:
-            self._log_error("Unexpected error during bulk_create", None, e, is_exception=True)
+            self._log_error(
+                f"Unexpected error during bulk_create {self.model.__name__}", None, e, is_exception=True
+            )
+
+        return []
 
 
-    def bulk_update_instances(self, objects: List[models.Model], fields: List[str], batch_size: int = 100) -> None:
-        """Efficiently bulk update instances."""
+    def bulk_update_instances(self, objects: List[Model], fields: List[str], *, batch_size: int = 100) -> List[Model]:
+        """Atomically bulk update instances in batches."""
 
         if not objects or not fields:
-            return
+            raise ValueError("Objects and fields cannot be empty")
 
         try:
-            self.bulk_update(objects, fields, batch_size=batch_size)
+            for i in range(0, len(objects), batch_size):
+                batch = objects[i:i + batch_size]
+                self.bulk_update(batch, fields=fields)
+            return objects
 
         except IntegrityError as e:
-            self._log_error("IntegrityError during bulk_update", None, e)
+            self._log_error(f"IntegrityError during bulk_create {self.model.__name__}", None, e)
+
         except Exception as e:
-            self._log_error("Unexpected error during bulk_update", None, e, is_exception=True)
+            self._log_error(
+                f"Unexpected error during bulk_create {self.model.__name__}", None, e, is_exception=True
+            )
+            raise
 
 
-    def bulk_delete_instances(self, **filters) -> int:
-        """Delete multiple records matching the given filters."""
+    def bulk_delete_instances(self, **filters) -> List[Model]:
+        """Bulk delete instances matching filters atomically."""
+
+        if not filters:
+            return []
 
         try:
-            deleted_count, _ = self.filter(**filters).delete()
-            return deleted_count
+            instances = list(self.filter_by(**filters))
+            if instances:
+                self.filter_by(pk__in=[obj.pk for obj in instances]).delete()
+            return instances
+
+        except IntegrityError as e:
+            self._log_error(f"IntegrityError during bulk_delete {self.model.__name__}", None, e)
 
         except Exception as e:
-            self._log_error("Error in bulk_delete", None, e, is_exception=True)
-            return 0
+            self._log_error(
+                f"Unexpected error during bulk_delete {self.model.__name__}", None, e, is_exception=True
+            )
+            raise
+        return  []
 
 
-    def _log_error(self,
-                   error_type: str,
-                   instance: Optional[BaseModel],
-                   error: Exception,
-                   is_exception: bool = False) -> None:
-        """Helper method to log errors."""
+    def _log_error(
+            self,
+            error_type: str,
+            instance: Optional[BaseModel] = None,
+            error: Optional[Exception] = None,
+            *,
+            is_exception: bool = False,
+            is_information: bool = False,
+            extra: Optional[Dict[str, Any]] = None,
+            **kwargs: Any
+    ) -> None:
+        """Unified logging helper for repository operations with structured context."""
 
-        model_name = instance.__class__.__name__ if\
-            instance else self.model.__name__ if\
-            hasattr( self.model, "__name__") else "unknown model"
+        model_name = "unknown_model"
+        if instance is not None:
+            model_name = instance.__class__.__name__
+        elif hasattr(self, 'model') and hasattr(self.model, '__name__'):
+            model_name = self.model.__name__
 
-        message = f"{error_type} while creating {model_name}: {error}"
+        log_data = {
+            "model": model_name,
+            "error_type": error_type,
+            **kwargs
+        }
+
+        if extra:
+            log_data.update(extra)
+
+        if instance is not None and hasattr(instance, 'pk'):
+            log_data['instance_id'] = instance.pk
+
+        error_message = str(error) if error else "Unknown error"
+        log_message = f"{error_type} in {model_name}: {error_message}"
 
         if is_exception:
-            logger.exception(message)
+            logger.exception(log_message, extra=log_data)
+        elif is_information:
+            logger.info(log_message, extra=log_data)
         else:
-            logger.error(message)
+            logger.error(log_message, extra=log_data)
 
 
 #
@@ -175,7 +227,7 @@ class BaseManager(AbstractManager, models.Manager):
 #     pass
 
 
-class BaseModel(models.Model):
+class BaseModel(Model):
     """Abstract base model with common CRUD methods."""
 
     objects = BaseManager()

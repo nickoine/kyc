@@ -16,6 +16,12 @@ DATABASES = {
     }
 }
 
+CACHEOPS = {
+    "accounts.account": {"ops": "all", "timeout": 60 * 15},  # Cache Account queries for 15 min
+    "questionnaires.questionnaire": {"ops": ("fetch",), "timeout": 60 * 30},  # Cache questionnaires for 30 min
+}
+
+
 
 # def ensure_postgres_container():
 #     try:

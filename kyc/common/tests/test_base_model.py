@@ -217,7 +217,7 @@ class TestCreateInstance(TestClassBase):
         # Assert
         self.assertIsNone(result)
         self.assert_logs_error(
-            re.compile(r"IntegrityError while creating \w+: Duplicate entry")
+            re.compile(r"IntegrityError in \w+: Duplicate entry")
         )
 
 
@@ -233,7 +233,7 @@ class TestCreateInstance(TestClassBase):
         # Assert
         self.assertIsNone(result)
         self.assert_logs_error(
-            re.compile(r"DatabaseError while creating \w+: Connection issue")
+            re.compile(r"DatabaseError in \w+: Connection issue")
         )
 
 
@@ -249,7 +249,7 @@ class TestCreateInstance(TestClassBase):
         # Assert
         self.assertIsNone(result)
         self.assert_logs_exception(
-            re.compile(r"Unexpected error while creating \w+: Unknown error")
+            re.compile(r"Unexpected error in \w+: Unknown error")
         )
 
 
@@ -262,28 +262,34 @@ class TestLogError(TestClassBase):
         super().setUp()
         self.mock_model.__class__.__name__ = "TestModel"
 
-
     def test_log_error_with_instance_and_exception(self):
         """Test _log_error with instance provided and is_exception=True."""
 
-        # Act: Call _log_error
-        self.base_manager._log_error("IntegrityError", self.mock_model, Exception("Duplicate entry"), is_exception=True)
-
-        # Assert
-        self.mock_exception_logger.assert_called_once_with(
-            f"IntegrityError while creating {self.mock_model.__class__.__name__}: Duplicate entry"
+        # Act
+        self.base_manager._log_error(
+            "IntegrityError", self.mock_model, Exception("Duplicate entry"),is_exception=True
         )
 
+        # Assert
+        expected_log_message = "IntegrityError in TestModel: Duplicate entry"
+        self.mock_exception_logger.assert_called_once_with(
+            expected_log_message,
+            extra={"model": "TestModel", "error_type": "IntegrityError", "instance_id": self.mock_model.pk}
+        )
 
     def test_log_error_with_instance_and_error(self):
         """Test _log_error with instance provided and is_exception=False."""
 
-        # Act: Call _log_error
-        self.base_manager._log_error("DatabaseError", self.mock_model, Exception("Connection error"), is_exception=False)
+        # Act
+        self.base_manager._log_error(
+            "DatabaseError", self.mock_model, Exception("Connection error"), is_exception=False
+        )
 
         # Assert
+        expected_log_message = "DatabaseError in TestModel: Connection error"
         self.mock_error_logger.assert_called_once_with(
-            f"DatabaseError while creating {self.mock_model.__class__.__name__}: Connection error"
+            expected_log_message,
+            extra={"model": "TestModel", "error_type": "DatabaseError", "instance_id": self.mock_model.pk}
         )
 
 
@@ -291,13 +297,16 @@ class TestLogError(TestClassBase):
         """Test _log_error without instance (fallback to self.model)."""
 
         # Act
-        self.base_manager._log_error("Unexpected error", None, Exception("Unknown error"), is_exception=False)
-
-        # Assert
-        self.mock_error_logger.assert_called_once_with(
-            "Unexpected error while creating unknown model: Unknown error"
+        self.base_manager._log_error(
+            "Unexpected error", None, Exception("Unknown error"), is_exception=False
         )
 
+        # Assert
+        expected_log_message = "Unexpected error in unknown_model: Unknown error"
+        self.mock_error_logger.assert_called_once_with(
+            expected_log_message,
+            extra={"model": "unknown_model", "error_type": "Unexpected error"}
+        )
 
     def test_log_error_without_instance_and_model_name(self):
         """Test _log_error without instance and without self.model.__name__ (fallback to 'unknown model')."""
@@ -306,13 +315,16 @@ class TestLogError(TestClassBase):
         delattr(self.base_manager.model, "__name__")
 
         # Act
-        self.base_manager._log_error("Unexpected error", None, Exception("Unknown error"), is_exception=False)
-
-        # Assert
-        self.mock_error_logger.assert_called_once_with(
-            "Unexpected error while creating unknown model: Unknown error"
+        self.base_manager._log_error(
+            "Unexpected error", None, Exception("Unknown error"), is_exception=False
         )
 
+        # Assert
+        expected_log_message = "Unexpected error in unknown_model: Unknown error"
+        self.mock_error_logger.assert_called_once_with(
+            expected_log_message,
+            extra={"model": "unknown_model", "error_type": "Unexpected error"}
+        )
 
 class BaseModelTest(BaseModel):
     """Concrete model for testing BaseModel functionality."""
