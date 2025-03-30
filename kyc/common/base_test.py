@@ -25,8 +25,7 @@ class TestClassBase(SimpleTestCase):
 
         # Mock db manager
         self.base_manager = BaseManager()
-        self.base_manager.model = MagicMock(return_value=self.mock_model)
-        self.base_manager.model = self.mock_model
+        self.base_manager.model = self.mock_model # type: ignore[assignment]
 
         # Mock the transaction module
         self.mock_commit = patch("django.db.transaction.commit").start()

@@ -173,16 +173,22 @@ class TestCreateInstance(TestClassBase):
 
 
     def test_create_instance_invalid_model(self) -> None:
-        """Test create_instance with an invalid model."""
+        """Test create_instance when manager has no model attached."""
 
         # Arrange
         self.base_manager.model = None
 
-        # Act
-        result = self.base_manager.create_instance(name="Test Instance")
+        # Act & Assert
+        with self.assertRaises(ValueError) as context:
+            self.base_manager.create_instance(name="Test Instance")
 
-        # Assert
-        self.assertIsNone(result)
+        self.assertEqual(
+            str(context.exception),
+            "BaseManager must be attached to a model before creating instances"
+        )
+
+        self.assert_no_errors_logged()
+        self.assert_no_exceptions_logged()
 
 
     def test_create_instance_empty_kwargs(self) -> None:
@@ -325,6 +331,7 @@ class TestLogError(TestClassBase):
             expected_log_message,
             extra={"model": "unknown_model", "error_type": "Unexpected error"}
         )
+
 
 class BaseModelTest(BaseModel):
     """Concrete model for testing BaseModel functionality."""
@@ -548,15 +555,13 @@ class TestBaseModel(TestClassBase):
         """Test that save() works correctly when no errors occur."""
 
         # Arrange
-        with patch("django.db.models.Model.save", autospec=True) as mock_parent_save, \
-                patch("django.db.transaction.atomic") as mock_atomic:
+        with patch("django.db.models.Model.save", autospec=True) as mock_parent_save:
 
             # Act
             self.base_model.save()
 
             # Assert
             mock_parent_save.assert_called_once_with(self.base_model)
-            mock_atomic.assert_called_once()
             expected_info = f"Successfully saved {self.base_model.__class__.__name__} (ID: {self.base_model.pk})"
             self.assert_logs_info(expected_info)
 
@@ -587,9 +592,7 @@ class TestBaseModel(TestClassBase):
         self.base_model.after_save = lambda: None
 
         with patch("django.db.models.Model.save", autospec=True,
-                   side_effect=IntegrityError("Integrity issue")) as mock_parent_save, \
-                patch("django.db.transaction.atomic") as mock_atomic:
-
+                   side_effect=IntegrityError("Integrity issue")) as mock_parent_save:
             # Act
             with self.assertRaises(IntegrityError) as exc_context:
                 self.base_model.save()
@@ -599,7 +602,6 @@ class TestBaseModel(TestClassBase):
 
             # Assert: save and transaction.atomic were called
             mock_parent_save.assert_called_once_with(self.base_model)
-            mock_atomic.assert_called_once()
             self.assert_logs_error(
                 re.compile(rf"IntegrityError in {self.base_model.__class__.__name__}\.save\(\): Integrity issue")
             )
@@ -613,16 +615,13 @@ class TestBaseModel(TestClassBase):
         self.base_model.after_save = lambda: None
 
         with patch("django.db.models.Model.save", autospec=True,
-                   side_effect=Exception("Unexpected error")) as mock_parent_save, \
-                patch("django.db.transaction.atomic") as mock_atomic:
-
+                   side_effect=Exception("Unexpected error")) as mock_parent_save:
             # Act
             with self.assertRaises(Exception) as ctx:
                 self.base_model.save(commit=True)
 
             self.assertIn("Unexpected error", str(ctx.exception))
             mock_parent_save.assert_called_once_with(self.base_model)
-            mock_atomic.assert_called_once()
             self.assert_logs_exception(
                 re.compile(r"Unexpected error in \w+\.save\(\): Unexpected error")
             )

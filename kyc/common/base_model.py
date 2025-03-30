@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.db import transaction, IntegrityError, DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Model, Manager
+from django.db import models
 
 # Internal
 from abc import ABC, abstractmethod
@@ -10,11 +11,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, TypeVar, Type
 if TYPE_CHECKING:
     from django.db.models import QuerySet
     from typing import Optional, List
 
+
+T = TypeVar("T", bound="Model")
 
 class AbstractManager(ABC):
     """Abstract manager for common query operations."""
@@ -29,9 +32,10 @@ class AbstractManager(ABC):
         return self
 
 
-class BaseManager(AbstractManager, Manager):
+class BaseManager(AbstractManager, Manager[T]):
     """Manager for common query operations."""
 
+    model: Type[T]
 
     def get_by_id(self, obj_id: int | str) -> QuerySet | None:
         """Fetch an instance by ID if it's valid."""
@@ -51,28 +55,26 @@ class BaseManager(AbstractManager, Manager):
 
     def get_all(self) -> QuerySet:
         """Return all objects of the model."""
-
         return self.all()
 
 
     def filter_by(self, **filters) -> QuerySet:
         """Return objects that match the given filters."""
-
         return self.filter(**filters)
 
 
     def exists(self, **filters) -> bool:
         """Check if an object with given filters exists."""
-
         return self.filter(**filters).exists()
 
 
-    def create_instance(self, **kwargs) -> QuerySet | None:
+    def create_instance(self, **kwargs) -> Optional[Model | None]:
         """Create and return an instance."""
 
-        if kwargs is None or not kwargs:
+        if not kwargs:
             return None
-
+        if not getattr(self, "model", None):
+            raise ValueError("BaseManager must be attached to a model before creating instances")
         instance = None
 
         try:
@@ -90,24 +92,26 @@ class BaseManager(AbstractManager, Manager):
         return None
 
 
-    def bulk_create_instances(self, objects: List[Model], batch_size: int = 100) -> Optional[List[Model], List[None]]:
+    def bulk_create_instances(self, objects: List[Model], batch_size: int = 100) -> List[Model]:
         """Bulk create instances and return the created objects."""
 
         if not objects:
             return []
+
+        model_name = self.model.__name__
 
         try:
             created_instances = self.bulk_create(objects, batch_size=batch_size)
             return created_instances
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_create {self.model.__name__}", None, e)
+            self._log_error(f"IntegrityError during bulk_create {model_name}", None, e)
 
         except Exception as e:
             self._log_error(
-                f"Unexpected error during bulk_create {self.model.__name__}", None, e, is_exception=True
+                f"Unexpected error during bulk_create {model_name}", None, e, is_exception=True
             )
-
+            raise
         return []
 
 
@@ -115,7 +119,9 @@ class BaseManager(AbstractManager, Manager):
         """Atomically bulk update instances in batches."""
 
         if not objects or not fields:
-            raise ValueError("Objects and fields cannot be empty")
+            return []
+
+        model_name = self.model.__name__
 
         try:
             for i in range(0, len(objects), batch_size):
@@ -124,13 +130,14 @@ class BaseManager(AbstractManager, Manager):
             return objects
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_create {self.model.__name__}", None, e)
+            self._log_error(f"IntegrityError during bulk_create {model_name}", None, e)
 
         except Exception as e:
             self._log_error(
-                f"Unexpected error during bulk_create {self.model.__name__}", None, e, is_exception=True
+                f"Unexpected error during bulk_create {model_name}", None, e, is_exception=True
             )
             raise
+        return []
 
 
     def bulk_delete_instances(self, **filters) -> List[Model]:
@@ -139,6 +146,8 @@ class BaseManager(AbstractManager, Manager):
         if not filters:
             return []
 
+        model_name = self.model.__name__
+
         try:
             instances = list(self.filter_by(**filters))
             if instances:
@@ -146,11 +155,11 @@ class BaseManager(AbstractManager, Manager):
             return instances
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_delete {self.model.__name__}", None, e)
+            self._log_error(f"IntegrityError during bulk_delete {model_name}", None, e)
 
         except Exception as e:
             self._log_error(
-                f"Unexpected error during bulk_delete {self.model.__name__}", None, e, is_exception=True
+                f"Unexpected error during bulk_delete {model_name}", None, e, is_exception=True
             )
             raise
         return  []
@@ -215,14 +224,6 @@ class BaseManager(AbstractManager, Manager):
 #     pass
 #
 #
-# class QuestionnairesManager(BaseManager):
-#     pass
-#
-#
-# class QuestionsManager(BaseManager):
-#     pass
-#
-#
 # class UserResponsesManager(BaseManager):
 #     pass
 
@@ -230,6 +231,7 @@ class BaseManager(AbstractManager, Manager):
 class BaseModel(Model):
     """Abstract base model with common CRUD methods."""
 
+    id = models.AutoField(primary_key=True)
     objects = BaseManager()
 
 
@@ -282,6 +284,9 @@ class BaseModel(Model):
 
     def update(self, **kwargs) -> None:
         """Update model fields and save the instance safely."""
+
+        if kwargs is None or not kwargs:
+            return None
 
         try:
             self.before_update()
@@ -338,10 +343,9 @@ class BaseModel(Model):
 
         try:
             self.before_save()
-            with transaction.atomic():
-                super().save(*args, **kwargs)
-                logger.info(f"Successfully saved {self.__class__.__name__} (ID: {self.pk})")
-                self.after_save()
+            super().save(*args, **kwargs)
+            logger.info(f"Successfully saved {self.__class__.__name__} (ID: {self.pk})")
+            self.after_save()
 
         except IntegrityError as e:
             logger.error(f"IntegrityError in {self.__class__.__name__}.save(): {e}")

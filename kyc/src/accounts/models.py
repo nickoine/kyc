@@ -4,7 +4,6 @@ from django.contrib.auth.models import AbstractUser, PermissionsMixin, Group, Pe
 
 # Internal
 from ...common.base_model import BaseModel
-from ...etc import AUTH_USER_MODEL
 from .service import UserManager
 
 
@@ -108,7 +107,7 @@ class Account(BaseModel):
     Each account is linked to a single user and has a role.
     """
     account_user = models.OneToOneField(
-        AUTH_USER_MODEL,
+        'accounts.Account',
         on_delete=models.CASCADE,
         verbose_name="User",
         help_text="The user associated with this account."
@@ -192,7 +191,7 @@ class Admin(BaseModel):
     Each admin is linked to a single user and account, and has a specific role.
     """
     admin_user = models.OneToOneField(
-        AUTH_USER_MODEL,
+        'accounts.Account',
         on_delete=models.CASCADE,
         verbose_name="User",
         help_text="The user associated with this admin.",
