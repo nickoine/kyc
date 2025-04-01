@@ -41,7 +41,7 @@ class TestClassBase(SimpleTestCase):
         # self.mock_env = patch.dict(os.environ, {"CONFIG_VAR": "mocked"}).start()
 
         # Mock Django cache (optional, uncomment if needed)
-        # self.mock_cache = patch("django.core.cache.cache").start()
+        self.mock_cache = patch("django.core.cache.cache").start()
 
         # Mock Django signals (optional, uncomment if needed)
         # self.mock_signal = patch("path.models.signals.post_save.send").start()

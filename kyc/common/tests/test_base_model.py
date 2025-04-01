@@ -1,6 +1,6 @@
 # External
 import re
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 
 from django.db import IntegrityError, DatabaseError, models
 
@@ -9,7 +9,7 @@ from ..base_test import TestClassBase
 from ..base_model import BaseModel
 
 
-class TestGetByID(TestClassBase):
+class TestManagerGetByID(TestClassBase):
     """Unit tests for BaseManager get_by_id method behavior."""
 
     def setUp(self):
@@ -144,7 +144,7 @@ class TestGetByID(TestClassBase):
             mock_filter.assert_called_once_with(id=999999999999999999)
 
 
-class TestCreateInstance(TestClassBase):
+class TestManagerCreateInstance(TestClassBase):
     """Unit tests for BaseManager create_instance method behavior."""
 
 
@@ -259,7 +259,7 @@ class TestCreateInstance(TestClassBase):
         )
 
 
-class TestLogError(TestClassBase):
+class TestManagerLogError(TestClassBase):
     """Unit tests for the _log_error helper method."""
 
     def setUp(self):
@@ -267,6 +267,7 @@ class TestLogError(TestClassBase):
 
         super().setUp()
         self.mock_model.__class__.__name__ = "TestModel"
+
 
     def test_log_error_with_instance_and_exception(self):
         """Test _log_error with instance provided and is_exception=True."""
@@ -331,6 +332,299 @@ class TestLogError(TestClassBase):
             expected_log_message,
             extra={"model": "unknown_model", "error_type": "Unexpected error"}
         )
+
+
+class TestManagerBulk(TestClassBase):
+    """Unit tests for BaseManager bulk_create_instances, bulk_update_instances, bulk_delete_instances methods behavior."""
+
+    def setUp(self):
+        """Runs before each test: Extends UnitTestBase setup."""
+
+        super().setUp()
+        self.mock_model.__name__ = "TestModel"
+        self.test_fields = ['field1', 'field2']
+        self.test_objects = [MagicMock(spec=BaseModel) for _ in range(5)]
+
+
+    def test_bulk_create_instances_success(self) -> None:
+        """Test successful bulk creation of instances."""
+
+        # Arrange
+        self.base_manager.bulk_create = MagicMock(return_value=self.test_objects)
+
+        # Act
+        result = self.base_manager.bulk_create_instances(self.test_objects, batch_size=2)
+
+        # Assert
+        self.assertEqual(result, self.test_objects)
+        self.base_manager.bulk_create.assert_called_once_with(self.test_objects, batch_size=2)
+        self.assert_no_errors_logged()
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_create_instances_empty_list(self) -> None:
+        """Test bulk creation with empty objects list."""
+
+        # Act
+        result = self.base_manager.bulk_create_instances([])
+
+        # Assert
+        self.assertEqual(result, [])
+        self.assert_no_errors_logged()
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_create_instances_integrity_error(self) -> None:
+        """Test bulk creation handling of IntegrityError."""
+
+        # Arrange
+        integrity_error = IntegrityError("Duplicate entry")
+        self.base_manager.bulk_create = MagicMock(side_effect=integrity_error)
+
+        # Act
+        result = self.base_manager.bulk_create_instances(self.test_objects)
+
+        # Assert
+        self.assertEqual(result, [])
+        self.assert_logs_error(re.compile(r"IntegrityError during bulk_create TestModel"))
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_create_instances_unexpected_error(self) -> None:
+        """Test bulk creation handling of unexpected errors."""
+
+        # Arrange
+        unexpected_error = Exception("Database connection failed")
+        self.base_manager.bulk_create = MagicMock(side_effect=unexpected_error)
+
+        # Act & Assert
+        with self.assertRaises(Exception) as context:
+            self.base_manager.bulk_create_instances(self.test_objects)
+
+        self.assertEqual(str(context.exception), "Database connection failed")
+        self.assert_logs_exception(
+            re.compile(r"Unexpected error during bulk_create TestModel")
+        )
+
+
+    def test_bulk_update_instances_success(self) -> None:
+        """Test successful bulk update of instances."""
+
+        # Arrange
+        self.base_manager.bulk_update = MagicMock()
+
+        # Act
+        result = self.base_manager.bulk_update_instances(self.test_objects, self.test_fields, batch_size=2)
+
+        # Assert
+        self.assertEqual(result, self.test_objects)
+        # Should make 3 calls (5 items with batch_size=2)
+        self.assertEqual(self.base_manager.bulk_update.call_count, 3)
+        self.assert_no_errors_logged()
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_update_instances_integrity_error(self) -> None:
+        """Test bulk update handling of IntegrityError."""
+
+        # Arrange
+        integrity_error = IntegrityError("Duplicate entry")
+        self.base_manager.bulk_update = MagicMock(side_effect=integrity_error)  # type: ignore[method-assign]
+
+        # Act
+        result = self.base_manager.bulk_update_instances(self.test_objects, self.test_fields)
+
+        # Assert
+        self.assertEqual(result, [])
+        self.assert_logs_error(re.compile(r"IntegrityError during bulk_create TestModel"))
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_update_instances_unexpected_error(self) -> None:
+        """Test bulk update handling of unexpected errors."""
+
+        # Arrange
+        unexpected_error = Exception("Database connection failed")
+        self.base_manager.bulk_update = MagicMock(side_effect=unexpected_error)
+
+        # Act & Assert
+        with self.assertRaises(Exception) as context:
+            self.base_manager.bulk_update_instances(self.test_objects, self.test_fields)
+
+        self.assertEqual(str(context.exception), "Database connection failed")
+        self.assert_logs_exception(
+            re.compile(r"Unexpected error during bulk_create TestModel")
+        )
+
+
+    def test_bulk_update_instances_empty_objects(self) -> None:
+        """Test bulk update with empty objects list."""
+
+        # Act
+        result = self.base_manager.bulk_update_instances([], self.test_fields)
+
+        # Assert
+        self.assertEqual(result, [])
+        self.assert_no_errors_logged()
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_update_instances_empty_fields(self) -> None:
+        """Test bulk update with empty fields list."""
+
+        # Arrange & Act
+        result = self.base_manager.bulk_update_instances(self.test_objects, [])
+
+        # Assert
+        self.assertEqual(result, [])
+        self.assert_no_errors_logged()
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_update_instances_batch_processing(self) -> None:
+        """Test that bulk update properly batches objects."""
+
+        # Arrange
+        test_objects = [MagicMock(spec=BaseModel) for _ in range(10)]
+        self.base_manager.bulk_update = MagicMock()
+
+        # Act
+        self.base_manager.bulk_update_instances(test_objects, self.test_fields, batch_size=3)
+
+        # Assert
+        # Should make 4 calls (10 items with batch_size=3)
+        self.assertEqual(self.base_manager.bulk_update.call_count, 4)
+
+        # Verify batches are correct
+        batches = [call.args[0] for call in self.base_manager.bulk_update.call_args_list]
+        self.assertEqual(len(batches[0]), 3)  # First 3 batches have 3 items
+        self.assertEqual(len(batches[3]), 1)  # Last batch has 1 item
+
+
+    def test_bulk_delete_instances_success(self) -> None:
+        """Test successful bulk deletion with filters."""
+
+        # Arrange
+        test_objects = [MagicMock(spec=BaseModel) for _ in range(3)]
+        for i, instance in enumerate(test_objects, 1):
+            instance.pk = i
+
+        # Create two separate mock querysets
+        find_queryset = MagicMock()
+        find_queryset.__iter__.return_value = iter(test_objects)
+
+        delete_queryset = MagicMock()
+
+        # Configure filter_by to return different querysets
+        self.base_manager.filter_by = MagicMock(side_effect=[
+            find_queryset,  # First call returns instances
+            delete_queryset  # Second call returns delete queryset
+        ])
+
+        # Act & Assert
+        result = self.base_manager.bulk_delete_instances(status="inactive")
+        self.assertEqual(result, test_objects)
+
+        # Verify filter_by calls using call()
+        calls = self.base_manager.filter_by.call_args_list
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0], call(status="inactive"))
+        self.assertEqual(calls[1], call(pk__in=[1, 2, 3]))
+
+        delete_queryset.delete.assert_called_once()
+        self.assert_no_errors_logged()
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_delete_instances_integrity_error(self) -> None:
+        """Test bulk delete handling of IntegrityError."""
+
+        # Arrange
+        mock_instances = [MagicMock(spec=BaseModel)]
+        mock_instances[0].pk = 1
+
+        # Set up mock queryset that will raise IntegrityError
+        self.mock_service.filter_by.return_value = self.mock_service
+        self.mock_service.__iter__.return_value = iter(mock_instances)
+        self.mock_service.delete.side_effect = IntegrityError("Foreign key constraint")
+        self.base_manager.filter_by = MagicMock(return_value=self.mock_service)
+        # Clear any previous mock calls
+        self.mock_error_logger.reset_mock()
+
+        # Act
+        result = self.base_manager.bulk_delete_instances(status="old")
+
+        # Assert
+        self.assertEqual(result, [])
+
+        logged_message = None
+        for call_arg in self.mock_error_logger.call_args_list:
+            if "IntegrityError during bulk_delete TestModel" in call_arg[0][0]:
+                logged_message = call_arg[0][0]
+                break
+
+        self.assertIsNotNone(logged_message, "Expected error log not found")
+        self.assertIn("Foreign key constraint", logged_message)
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_delete_instances_unexpected_error(self) -> None:
+        """Test bulk delete handling of unexpected errors."""
+        # Arrange
+        self.mock_model.pk = 1
+
+        # Set up mock queryset that will raise unexpected error during iteration
+        self.mock_service.filter_by.return_value = self.mock_service
+        self.mock_service.__iter__.side_effect = Exception("Database connection failed")
+        self.base_manager.filter_by = MagicMock(return_value=self.mock_service)
+        # Clear previous mock calls
+        self.mock_exception_logger.reset_mock()
+
+        # Act & Assert
+        with self.assertRaises(Exception) as context:
+            self.base_manager.bulk_delete_instances(category="test")
+
+        self.assertEqual(str(context.exception), "Database connection failed")
+
+        self.assert_logs_exception(
+            re.compile(r"Unexpected error during bulk_delete TestModel")
+        )
+
+        self.assertIn("Database connection failed", str(context.exception))
+
+
+    def test_bulk_delete_instances_empty_filters(self) -> None:
+        """Test bulk delete with empty fil dict."""
+
+        # Arrange
+        self.base_manager.filter_by = self.mock_service
+
+        # Act
+        result = self.base_manager.bulk_delete_instances()
+
+        # Assert
+        self.assertEqual(result, [])
+        self.base_manager.filter_by.assert_not_called()
+        self.assert_no_errors_logged()
+        self.assert_no_exceptions_logged()
+
+
+    def test_bulk_delete_instances_no_matches(self) -> None:
+        """Test bulk delete when no instances match filters."""
+
+        # Arrange
+        self.mock_service.filter_by.return_value = self.mock_service
+        self.mock_service.__iter__.return_value = iter([])
+        self.base_manager.filter_by = self.mock_service
+
+        # Act
+        result = self.base_manager.bulk_delete_instances(active=False)
+
+        # Assert
+        self.assertEqual(result, [])
+        self.base_manager.filter_by.assert_called_once_with(active=False)
+        self.mock_service.delete.assert_not_called()
+        self.assert_no_errors_logged()
 
 
 class BaseModelTest(BaseModel):

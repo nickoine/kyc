@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound=Model)
 
 
-class Repository(ABC, Generic[T]):
+class Repository(ABC):
     """Abstract class that defines the contract for repositories."""
 
     @property
@@ -81,7 +81,7 @@ class Repository(ABC, Generic[T]):
         pass
 
 
-class BaseRepository(Repository[T]):
+class BaseRepository(Repository, Generic[T]):
     """Base repository implementation."""
 
     CACHE_TIMEOUT = 60 * 15
