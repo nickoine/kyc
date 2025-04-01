@@ -1,23 +1,24 @@
-# External
 from __future__ import annotations
+
+# External
 from django.db import transaction, IntegrityError, DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Model, Manager
 from django.db import models
 
 # Internal
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Dict, TypeVar
 import logging
 
 logger = logging.getLogger(__name__)
 
-from typing import TYPE_CHECKING, Any, Dict, TypeVar, Type
 if TYPE_CHECKING:
     from django.db.models import QuerySet
     from typing import Optional, List
 
 
-T = TypeVar("T", bound="Model")
+T = TypeVar("T", bound=models.Model)
+
 
 class AbstractManager(ABC):
     """Abstract manager for common query operations."""
@@ -32,12 +33,11 @@ class AbstractManager(ABC):
         return self
 
 
-class BaseManager(AbstractManager, Manager[T]):
+class DBManager(models.Manager[T], AbstractManager):
     """Manager for common query operations."""
 
-    model: Type[T]
 
-    def get_by_id(self, obj_id: int | str) -> QuerySet | None:
+    def get_by_id(self, obj_id: int | str) -> Optional[T]:
         """Fetch an instance by ID if it's valid."""
 
         if not isinstance(obj_id, (int, str)) or not str(obj_id).isdigit():
@@ -53,12 +53,12 @@ class BaseManager(AbstractManager, Manager[T]):
             raise ValueError(str(e)) from e
 
 
-    def get_all(self) -> QuerySet:
+    def get_all(self) -> QuerySet[T]:
         """Return all objects of the model."""
         return self.all()
 
 
-    def filter_by(self, **filters) -> QuerySet:
+    def filter_by(self, **filters) -> QuerySet[T]:
         """Return objects that match the given filters."""
         return self.filter(**filters)
 
@@ -68,7 +68,7 @@ class BaseManager(AbstractManager, Manager[T]):
         return self.filter(**filters).exists()
 
 
-    def create_instance(self, **kwargs) -> Optional[Model | None]:
+    def create_instance(self, **kwargs) -> Optional[T]:
         """Create and return an instance."""
 
         if not kwargs:
@@ -92,7 +92,10 @@ class BaseManager(AbstractManager, Manager[T]):
         return None
 
 
-    def bulk_create_instances(self, objects: List[Model], batch_size: int = 100) -> List[Model]:
+    def bulk_create_instances(self,
+                              objects: List[models.Model],
+                              batch_size: int = 100
+    ) -> List[T]:
         """Bulk create instances and return the created objects."""
 
         if not objects:
@@ -115,7 +118,12 @@ class BaseManager(AbstractManager, Manager[T]):
         return []
 
 
-    def bulk_update_instances(self, objects: List[Model], fields: List[str], *, batch_size: int = 100) -> List[Model]:
+    def bulk_update_instances(self,
+                              objects: List[T],
+                              fields: List[str],
+                              *,
+                              batch_size: int = 100
+    ) -> List[T]:
         """Atomically bulk update instances in batches."""
 
         if not objects or not fields:
@@ -140,7 +148,7 @@ class BaseManager(AbstractManager, Manager[T]):
         return []
 
 
-    def bulk_delete_instances(self, **filters) -> List[Model]:
+    def bulk_delete_instances(self, **filters) -> List[T]:
         """Bulk delete instances matching filters atomically."""
 
         if not filters:
@@ -207,32 +215,11 @@ class BaseManager(AbstractManager, Manager[T]):
             logger.error(log_message, extra=log_data)
 
 
-#
-# class UserManager(BaseManager):
-#     pass
-#
-#
-# class AccountsManager(BaseManager):
-#     pass
-#
-#
-# class AdminsManager(BaseManager):
-#     pass
-#
-#
-# class RolesManager(BaseManager):
-#     pass
-#
-#
-# class UserResponsesManager(BaseManager):
-#     pass
-
-
-class BaseModel(Model):
+class BaseModel(models.Model):
     """Abstract base model with common CRUD methods."""
 
     id = models.AutoField(primary_key=True)
-    objects = BaseManager()
+    objects = DBManager()
 
 
     class Meta:

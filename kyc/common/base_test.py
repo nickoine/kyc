@@ -5,7 +5,7 @@ from django.test import SimpleTestCase
 from unittest.mock import MagicMock, patch
 
 # Internal
-from .base_model import BaseManager, BaseModel
+from .base_model import DBManager, BaseModel
 
 
 class TestClassBase(SimpleTestCase):
@@ -24,7 +24,7 @@ class TestClassBase(SimpleTestCase):
         self.mock_model.return_value = self.mock_service
 
         # Mock db manager
-        self.base_manager = BaseManager()
+        self.base_manager = DBManager()
         self.base_manager.model = self.mock_model # type: ignore[assignment]
 
         # Mock the transaction module

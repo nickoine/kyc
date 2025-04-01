@@ -1,24 +1,22 @@
 # External
 from __future__ import annotations
-from django.core.cache import cache
-from django.db.models import Manager, Model
-from django.db.models.options import Options
+from django.db import models
 from django.db import transaction
 
 # Internal
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, List, Type, TypeVar, Generic, Tuple, ClassVar
-from kyc.common import BaseModel
-
-if TYPE_CHECKING:
-    from kyc.common import BaseManager
+from typing import Optional, List, Type, TypeVar, Generic, Tuple, ClassVar
+from .base_cache import CacheManager
+from .base_model import DBManager
 
 
-T = TypeVar("T", bound=Model)
+T = TypeVar("T", bound=models.Model)
 
 
 class Repository(ABC):
     """Abstract class that defines the contract for repositories."""
+
+    _manager: DBManager[T] = None
 
     @property
     @abstractmethod
@@ -28,12 +26,14 @@ class Repository(ABC):
 
 
     @property
-    def manager(self) -> BaseManager[T]:
-        """Return the manager instance for the model."""
+    def manager(self) -> DBManager[T]:
+        """Return the manager instance for the model (lazy loaded)."""
 
-        if not hasattr(self.model, "objects") or not isinstance(self.model.objects, Manager):
-            raise TypeError(f"{self.model.__name__} must have a valid Manager.")
-        return self.model.objects
+        if self._manager is None:
+            if not hasattr(self.model, "objects") or not isinstance(self.model.objects, models.Manager):
+                raise TypeError(f"{self.model.__name__} must have a valid Manager.")
+            self._manager = self.model.objects
+        return self._manager
 
 
     @abstractmethod
@@ -68,30 +68,34 @@ class Repository(ABC):
 
     @abstractmethod
     def bulk_create_entities(self, instances: List[T]) -> List[T]:
+        """Bulk create new entities."""
         pass
 
 
     @abstractmethod
     def bulk_update_entities(self, instances: List[T], fields: List[str]) -> List[T]:
+        """Bulk update entities."""
         pass
 
 
     @abstractmethod
     def bulk_delete_entities(self, instances: List[T], **filters) -> Tuple[List[T], int]:
+        """Bulk delete entities."""
         pass
 
 
-class BaseRepository(Repository, Generic[T]):
-    """Base repository implementation."""
+class BaseRepository(Generic[T], Repository):
+    """Base repository implementation with caching."""
 
     CACHE_TIMEOUT = 60 * 15
     CACHE_KEY_FORMAT: ClassVar[str] = "{app_label}.{model_name}.{id}"
 
     _model: Type[T] = None
     _cache_enabled: bool = False
+    _cache_manager: CacheManager = CacheManager()
 
 
-    def __init__(self, model: Type[T], cache_enabled: bool = False):
+    def __init__(self, model: Type[T], cache_enabled: bool = False) -> None:
         """Initialize repository with a model and caching option."""
         self._model = model
         self._cache_enabled = cache_enabled
@@ -107,38 +111,34 @@ class BaseRepository(Repository, Generic[T]):
         return self._cache_enabled
 
 
-    @staticmethod
-    def _get_cache_key(instance: T) -> str:
-        """Static cache key generator."""
-
-        meta: Options = instance._meta  # type: ignore[attr-defined]
-        return BaseRepository.CACHE_KEY_FORMAT.format(
-            app_label=meta.app_label,
-            model_name=meta.model_name,
-            id=instance.id
-        )
+    def _get_cache_key(self, obj_id: int) -> str:
+        """Generate a cache key for the given instance."""
+        return f"{self.model.__name__.lower()}:{obj_id}"
 
 
     def get_entity_by_id(self, obj_id: int) -> Optional[T]:
-        """Fetch a single model instance by its ID."""
+        """Fetch a single model instance by its ID with caching."""
 
-        cache_key = f"{self.model.__name__.lower()}:{obj_id}"
-        if self._cache_enabled and (cached := cache.get(cache_key)):  # Walrus operator for readability
-            return cached
+        cache_key = self._get_cache_key(obj_id)
+        if self._cache_enabled:
+            instance = self._cache_manager.get(cache_key)
+            if instance:
+                return instance
 
         instance = self.manager.get_by_id(obj_id)
         if instance and self._cache_enabled:
-            cache.set(self._get_cache_key(instance), instance, timeout=self.CACHE_TIMEOUT)
+            self._cache_manager.set(cache_key, instance, timeout=self.CACHE_TIMEOUT)
         return instance
 
 
     def get_all_entities(self) -> List[T]:
-        """Fetch all instances."""
+        """Fetch all instances with optional caching."""
 
+        cache_key = f"{self.model.__name__.lower()}_all"
         if self._cache_enabled:
-            return cache.get_or_set(
-                f"{self.model.__name__.lower()}_all", lambda: list(self.manager.get_all()), timeout=600
-            )  # Cache for 10 minutes
+            return self._cache_manager.get_or_set(
+                cache_key, lambda: list(self.manager.get_all()), timeout=600
+            )
         return list(self.manager.get_all())
 
 
@@ -147,20 +147,8 @@ class BaseRepository(Repository, Generic[T]):
         """Create an instance and invalidate relevant cache."""
 
         instance = self.manager.create_instance(**kwargs)
-
         if self._cache_enabled and instance:
-            model_name = self.model.__name__.lower()
-            version_key = f"{model_name}_cache_version"
-
-            # Update cache version atomically
-            cache_version = cache.incr(version_key, delta=1) if cache.get(version_key) else 1
-            cache.set(version_key, cache_version)
-
-            # Remove only necessary cache keys
-            cache.delete(f"{model_name}_all")
-            if isinstance(instance, BaseModel):
-                cache.delete(self._get_cache_key(instance))
-
+            self._cache_manager.delete(self._get_cache_key(instance.id))
         return instance
 
 
@@ -174,7 +162,7 @@ class BaseRepository(Repository, Generic[T]):
 
         instance.update(**kwargs)
         if self._cache_enabled:
-            cache.delete(self._get_cache_key(instance))
+            self._cache_manager.delete(self._get_cache_key(obj_id))
         return instance
 
 
@@ -188,7 +176,7 @@ class BaseRepository(Repository, Generic[T]):
 
         instance.delete()
         if self._cache_enabled:
-            cache.delete(self._get_cache_key(instance))
+            self._cache_manager.delete(self._get_cache_key(obj_id))
         return instance
 
 
@@ -201,25 +189,29 @@ class BaseRepository(Repository, Generic[T]):
 
         created_instances = self.manager.bulk_create_instances(instances)
         if self._cache_enabled:
-            cache.delete(f"{self.model.__name__.lower()}_all")
-        return created_instances or []
+            for instance in created_instances:
+                self._cache_manager.delete(self._get_cache_key(instance.id))
+        return created_instances
 
 
     @transaction.atomic
-    def bulk_update_entities(self, instances: List[T], fields: List[str]) -> List[T]:  # Removed Optional
+    def bulk_update_entities(self, instances: List[T], fields: List[str]) -> List[T]:
         """Bulk update multiple instances."""
+
         if not instances:
             return []
 
         updated_instances = self.manager.bulk_update_instances(instances, fields)
         if self._cache_enabled:
-            cache.delete(f"{self.model.__name__.lower()}_all")
-        return updated_instances or []
+            for instance in updated_instances:
+                self._cache_manager.delete(self._get_cache_key(instance.id))
+        return updated_instances
 
 
     @transaction.atomic
     def bulk_delete_entities(self, instances: List[T], **filters) -> Tuple[List[T], int]:
         """Bulk delete multiple instances."""
+
         if not instances:
             return [], 0
 
@@ -227,8 +219,7 @@ class BaseRepository(Repository, Generic[T]):
         deleted_count = len(deleted_instances)
 
         if self._cache_enabled:
-            cache.delete(f"{self.model.__name__.lower()}_all")
+            for instance in deleted_instances:
+                self._cache_manager.delete(self._get_cache_key(instance.id))
 
-        # This tells the type checker that we know these are the correct type
-        typed_deleted_instances: List[T] = deleted_instances  # type: ignore
-        return typed_deleted_instances, deleted_count
+        return deleted_instances, deleted_count

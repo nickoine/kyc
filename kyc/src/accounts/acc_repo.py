@@ -72,6 +72,7 @@ class AccountRepository(BaseRepository[Account]):
     """Repository for handling Account model operations."""
     pass
 
+
 class AdminRepository(BaseRepository[Admin]):
     """Repository for handling User model operations."""
     pass
