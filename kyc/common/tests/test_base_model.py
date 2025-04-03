@@ -2,7 +2,7 @@
 import re
 from unittest.mock import patch, MagicMock, call
 
-from django.db import IntegrityError, DatabaseError, models
+from django.db import IntegrityError, DatabaseError
 
 # Internal
 from ..base_test import TestClassBase
@@ -627,16 +627,6 @@ class TestManagerBulk(TestClassBase):
         self.assert_no_errors_logged()
 
 
-class BaseModelTest(BaseModel):
-    """Concrete model for testing BaseModel functionality."""
-
-    name = models.CharField(max_length=255)
-
-    class Meta:
-        app_label = "_"
-        managed = False
-
-
 class TestBaseModel(TestClassBase):
     """Unit tests for BaseModel behavior."""
 
@@ -645,15 +635,14 @@ class TestBaseModel(TestClassBase):
         """Runs before each test: Extends UnitTestBase setup."""
 
         super().setUp()
-        self.base_model = BaseModelTest()
-        self.base_model.pk = 1
+        self.test_model.pk = 1
 
 
     def test_commit_success(self) -> None:
         """Test successful transaction commit."""
 
         # Act
-        self.base_model.commit()
+        self.test_model.commit()
 
         # Assert
         self.mock_commit.assert_called_once()
@@ -669,7 +658,7 @@ class TestBaseModel(TestClassBase):
 
         # Act
         with self.assertRaises(Exception) as ctx:
-            self.base_model.commit()
+            self.test_model.commit()
 
         # Assert
         self.assertEqual(str(ctx.exception), "Database error")
@@ -681,10 +670,10 @@ class TestBaseModel(TestClassBase):
         """Test successful execution of before_update hook."""
 
         # Act
-        self.base_model.before_update()
+        self.test_model.before_update()
 
         # Assert
-        self.assert_logs_info(f"Running before_update hook for {self.base_model.__class__.__name__}.")
+        self.assert_logs_info(f"Running before_update hook for {self.test_model.__class__.__name__}.")
         self.assert_no_errors_logged()
         self.assert_no_exceptions_logged()
 
@@ -694,15 +683,15 @@ class TestBaseModel(TestClassBase):
 
         # Arrange
         self.mock_service.side_effect = RuntimeError("Unexpected error")
-        self.base_model._before_update_hook = self.mock_service
+        self.test_model._before_update_hook = self.mock_service
 
         # Act
         with self.assertRaises(RuntimeError):
-            self.base_model.before_update()
+            self.test_model.before_update()
 
         # Assert
         self.assert_logs_exception(
-            f"Unexpected error in before_update for {self.base_model.__class__.__name__}: Unexpected error"
+            f"Unexpected error in before_update for {self.test_model.__class__.__name__}: Unexpected error"
         )
 
 
@@ -710,10 +699,10 @@ class TestBaseModel(TestClassBase):
         """Test successful execution of after_update hook."""
 
         # Act
-        self.base_model.after_update()
+        self.test_model.after_update()
 
         # Assert
-        self.assert_logs_info(f"Running after_update hook for {self.base_model.__class__.__name__}.")
+        self.assert_logs_info(f"Running after_update hook for {self.test_model.__class__.__name__}.")
         self.assert_no_errors_logged()
         self.assert_no_exceptions_logged()
 
@@ -723,15 +712,15 @@ class TestBaseModel(TestClassBase):
 
         # Arrange
         self.mock_service.side_effect = RuntimeError("Unexpected error")
-        self.base_model._after_update_hook = self.mock_service
+        self.test_model._after_update_hook = self.mock_service
 
         # Act
         with self.assertRaises(RuntimeError):
-            self.base_model.after_update()
+            self.test_model.after_update()
 
         # Assert
         self.assert_logs_exception(
-            f"Unexpected error in after_update for {self.base_model.__class__.__name__}: Unexpected error"
+            f"Unexpected error in after_update for {self.test_model.__class__.__name__}: Unexpected error"
         )
 
 
@@ -739,19 +728,19 @@ class TestBaseModel(TestClassBase):
         """Test that update works correctly when no errors occur."""
 
         # Arrange
-        with patch.object(BaseModelTest, "before_update") as mock_before_update, \
-                patch.object(BaseModelTest, "after_update") as mock_after_update, \
-                patch.object(BaseModelTest, "save", autospec=True) as mock_save:
+        with patch.object(self.test_model, "before_update") as mock_before_update, \
+                patch.object(self.test_model, "after_update") as mock_after_update, \
+                patch.object(self.test_model, "save") as mock_save:
 
             # Act
-            self.base_model.update(name="New Name", description="Updated Description")
+            self.test_model.update(name="New Name", description="Updated Description")
 
             # Assert hooks
             mock_before_update.assert_called_once()
-            mock_save.assert_called_once_with(self.base_model)
+            mock_save.assert_called_once_with()
             mock_after_update.assert_called_once()
             # Assert update logs a success message
-            expected_info = f"Updated {self.base_model.__class__.__name__} (ID: {self.base_model.pk}) successfully"
+            expected_info = f"Updated {self.test_model.__class__.__name__} (ID: {self.test_model.pk}) successfully"
             self.assert_logs_info(expected_info)
 
 
@@ -759,15 +748,15 @@ class TestBaseModel(TestClassBase):
         """Test that update() logs an exception and re-raises when before_update fails via lambda."""
 
         # Arrange
-        self.base_model.before_update = lambda: (_ for _ in ()).throw(Exception("Hook failure"))
+        self.test_model.before_update = lambda: (_ for _ in ()).throw(Exception("Hook failure"))
 
         # Act
         with self.assertRaises(Exception) as ctx:
-            self.base_model.update(name="New Name", description="Should fail")
+            self.test_model.update(name="New Name", description="Should fail")
 
         # Assert
         self.assertIn("Hook failure", str(ctx.exception))
-        expected_error = f"Error updating {self.base_model.__class__.__name__}: Hook failure"
+        expected_error = f"Error updating {self.test_model.__class__.__name__}: Hook failure"
         self.assert_logs_exception(expected_error)
 
 
@@ -779,11 +768,11 @@ class TestBaseModel(TestClassBase):
             with self.assertRaises(Exception) as ctx:
 
                 # Act
-                self.base_model.update(name="New Name", description="Updated Description")
+                self.test_model.update(name="New Name", description="Updated Description")
 
             # Assert
             self.assertIn("Unexpected DB error", str(ctx.exception))
-            expected_error = f"Error updating {self.base_model.__class__.__name__}: Unexpected DB error"
+            expected_error = f"Error updating {self.test_model.__class__.__name__}: Unexpected DB error"
             self.assert_logs_exception(expected_error)
 
 
@@ -791,10 +780,10 @@ class TestBaseModel(TestClassBase):
         """Ensure `before_save` logs the correct message."""
 
         # Act
-        self.base_model.before_save()
+        self.test_model.before_save()
 
         # Assert
-        self.assert_logs_info(f"Running before_save hook for {self.base_model.__class__.__name__}.")
+        self.assert_logs_info(f"Running before_save hook for {self.test_model.__class__.__name__}.")
         self.assert_no_errors_logged()
         self.assert_no_exceptions_logged()
 
@@ -804,15 +793,15 @@ class TestBaseModel(TestClassBase):
 
         # Arrange
         self.mock_service.side_effect = RuntimeError("Unexpected error")
-        self.base_model._before_save_hook = self.mock_service
+        self.test_model._before_save_hook = self.mock_service
 
         # Act
         with self.assertRaises(RuntimeError):
-            self.base_model.before_save()
+            self.test_model.before_save()
 
         # Assert
         self.assert_logs_exception(
-            f"Unexpected error in before_save for {self.base_model.__class__.__name__}: Unexpected error"
+            f"Unexpected error in before_save for {self.test_model.__class__.__name__}: Unexpected error"
         )
 
 
@@ -820,10 +809,10 @@ class TestBaseModel(TestClassBase):
         """Ensure `after_save` logs the correct message."""
 
         # Act
-        self.base_model.after_save()
+        self.test_model.after_save()
 
         # Assert
-        self.assert_logs_info(f"Running after_save hook for {self.base_model.__class__.__name__}.")
+        self.assert_logs_info(f"Running after_save hook for {self.test_model.__class__.__name__}.")
         self.assert_no_errors_logged()
         self.assert_no_exceptions_logged()
 
@@ -833,15 +822,15 @@ class TestBaseModel(TestClassBase):
 
         # Arrange
         self.mock_service.side_effect = RuntimeError("Unexpected error")
-        self.base_model._after_save_hook = self.mock_service
+        self.test_model._after_save_hook = self.mock_service
 
         # Act
         with self.assertRaises(RuntimeError):
-            self.base_model.after_save()
+            self.test_model.after_save()
 
         # Assert
         self.assert_logs_exception(
-            f"Unexpected error in after_save for {self.base_model.__class__.__name__}: Unexpected error"
+            f"Unexpected error in after_save for {self.test_model.__class__.__name__}: Unexpected error"
         )
 
 
@@ -852,11 +841,11 @@ class TestBaseModel(TestClassBase):
         with patch("django.db.models.Model.save", autospec=True) as mock_parent_save:
 
             # Act
-            self.base_model.save()
+            self.test_model.save()
 
             # Assert
-            mock_parent_save.assert_called_once_with(self.base_model)
-            expected_info = f"Successfully saved {self.base_model.__class__.__name__} (ID: {self.base_model.pk})"
+            mock_parent_save.assert_called_once_with(self.test_model)
+            expected_info = f"Successfully saved {self.test_model.__class__.__name__} (ID: {self.test_model.pk})"
             self.assert_logs_info(expected_info)
 
 
@@ -864,12 +853,12 @@ class TestBaseModel(TestClassBase):
         """Test that save() logs an exception and re-raises when before_save fails via lambda."""
 
         # Arrange: Override before_save with a lambda that raises an exception.
-        self.base_model.before_save = lambda: (_ for _ in ()).throw(Exception("Unexpected error in before_save"))
-        self.base_model.after_save = lambda: None
+        self.test_model.before_save = lambda: (_ for _ in ()).throw(Exception("Unexpected error in before_save"))
+        self.test_model.after_save = lambda: None
 
         # Act
         with self.assertRaises(Exception) as ctx:
-            self.base_model.save(commit=True)
+            self.test_model.save(commit=True)
 
         # Assert
         self.assertIn("Unexpected error in before_save", str(ctx.exception))
@@ -882,22 +871,22 @@ class TestBaseModel(TestClassBase):
         """Ensure that save() handles IntegrityError and logs it."""
 
         # Arrange: Override hooks with no-ops
-        self.base_model.before_save = lambda: None
-        self.base_model.after_save = lambda: None
+        self.test_model.before_save = lambda: None
+        self.test_model.after_save = lambda: None
 
         with patch("django.db.models.Model.save", autospec=True,
                    side_effect=IntegrityError("Integrity issue")) as mock_parent_save:
             # Act
             with self.assertRaises(IntegrityError) as exc_context:
-                self.base_model.save()
+                self.test_model.save()
 
             # Assert: Exception content
             self.assertIn("Integrity issue", str(exc_context.exception))
 
             # Assert: save and transaction.atomic were called
-            mock_parent_save.assert_called_once_with(self.base_model)
+            mock_parent_save.assert_called_once_with(self.test_model)
             self.assert_logs_error(
-                re.compile(rf"IntegrityError in {self.base_model.__class__.__name__}\.save\(\): Integrity issue")
+                re.compile(rf"IntegrityError in {self.test_model.__class__.__name__}\.save\(\): Integrity issue")
             )
 
 
@@ -905,17 +894,17 @@ class TestBaseModel(TestClassBase):
         """Ensure that save() logs unexpected exceptions and re-raises them."""
 
         # Arrange
-        self.base_model.before_save = lambda: None
-        self.base_model.after_save = lambda: None
+        self.test_model.before_save = lambda: None
+        self.test_model.after_save = lambda: None
 
         with patch("django.db.models.Model.save", autospec=True,
                    side_effect=Exception("Unexpected error")) as mock_parent_save:
             # Act
             with self.assertRaises(Exception) as ctx:
-                self.base_model.save(commit=True)
+                self.test_model.save(commit=True)
 
             self.assertIn("Unexpected error", str(ctx.exception))
-            mock_parent_save.assert_called_once_with(self.base_model)
+            mock_parent_save.assert_called_once_with(self.test_model)
             self.assert_logs_exception(
                 re.compile(r"Unexpected error in \w+\.save\(\): Unexpected error")
             )
@@ -928,12 +917,12 @@ class TestBaseModel(TestClassBase):
         with patch("django.db.models.Model.delete", autospec=True) as mock_parent_delete:
 
             # Act
-            self.base_model.delete()
+            self.test_model.delete()
 
             # Assert
-            mock_parent_delete.assert_called_once_with(self.base_model)
+            mock_parent_delete.assert_called_once_with(self.test_model)
             self.assert_logs_info(
-                f"Deleted {self.base_model.__class__.__name__} (ID: {self.base_model.pk}) successfully"
+                f"Deleted {self.test_model.__class__.__name__} (ID: {self.test_model.pk}) successfully"
             )
 
 
@@ -945,11 +934,11 @@ class TestBaseModel(TestClassBase):
                    side_effect=Exception("Deletion failed")) as mock_parent_delete:
             # Act
             with self.assertRaises(Exception) as ctx:
-                self.base_model.delete()
+                self.test_model.delete()
 
             # Assert
             self.assertIn("Deletion failed", str(ctx.exception))
-            mock_parent_delete.assert_called_once_with(self.base_model)
+            mock_parent_delete.assert_called_once_with(self.test_model)
             self.assert_logs_exception(
-                f"Error deleting {self.base_model.__class__.__name__} (ID: {self.base_model.pk}): Deletion failed"
+                f"Error deleting {self.test_model.__class__.__name__} (ID: {self.test_model.pk}): Deletion failed"
             )

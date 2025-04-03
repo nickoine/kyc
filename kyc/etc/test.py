@@ -2,8 +2,8 @@ from .base import *
 import os
 
 # Test Environment Settings
-DEBUG = False  # Tests should run with DEBUG off for realism
-ALLOWED_HOSTS = ['*']  # Allow all hosts during testing
+DEBUG = False
+ALLOWED_HOSTS = ['*']
 
 # Database Configuration
 DATABASES = {
@@ -16,6 +16,21 @@ DATABASES = {
         'PORT': os.getenv('TEST_DB_PORT', default=5434),
     }
 }
+
+
+# Application definition
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    'kyc.src.accounts',
+    'kyc.src.questionnaires',
+    'kyc.src.responses',
+]
 
 # Static files (For running tests with static content if needed)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

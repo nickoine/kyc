@@ -13,6 +13,9 @@ class User(AbstractUser, PermissionsMixin):
     Each user has a unique email address and is linked to a single account.
     """
 
+    USERNAME_FIELD = 'user_email'
+    objects = UserManager()
+
     user_email = models.EmailField(
         unique=True,
         verbose_name="Email",
@@ -32,9 +35,6 @@ class User(AbstractUser, PermissionsMixin):
         verbose_name="Created At",
         help_text="The timestamp when the user was created."
     )
-
-    USERNAME_FIELD = 'user_email'
-    objects = UserManager()
 
     # Groups and Permissions (required for Django's auth system)
     groups = models.ManyToManyField(
@@ -106,8 +106,9 @@ class Account(BaseModel):
     Represents a user account in the system.
     Each account is linked to a single user and has a role.
     """
+
     account_user = models.OneToOneField(
-        'accounts.Account',
+        'Account',
         on_delete=models.CASCADE,
         verbose_name="User",
         help_text="The user associated with this account."
@@ -190,19 +191,22 @@ class Admin(BaseModel):
     Represents an admin user in the system.
     Each admin is linked to a single user and account, and has a specific role.
     """
+
     admin_user = models.OneToOneField(
-        'accounts.Account',
+        'Account',
         on_delete=models.CASCADE,
         verbose_name="User",
         help_text="The user associated with this admin.",
-        db_index=True  # Index for faster lookups
+        db_index=True,  # Index for faster lookups
+        related_name = "admin_as_user"  # Unique reverse accessor
     )
     admin_account = models.OneToOneField(
         'Account',
         on_delete=models.CASCADE,
         verbose_name="Account",
         help_text="The account associated with this admin.",
-        db_index=True  # Index for faster lookups
+        db_index=True,
+        related_name="admin_as_account"
     )
     role = models.ForeignKey(
         'Role',

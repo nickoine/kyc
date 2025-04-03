@@ -3,10 +3,11 @@
 import os
 import sys
 
-
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kyc_project.settings')
+    env = os.getenv("ENV", "dev")  # Default to dev settings
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"kyc.etc.{env}")
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -18,5 +19,5 @@ def main():
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

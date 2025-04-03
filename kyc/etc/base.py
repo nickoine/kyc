@@ -43,7 +43,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'kyc_project.urls'
+ROOT_URLCONF = 'kyc.urls'
 
 TEMPLATES = [
     {
@@ -61,7 +61,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'kyc_project.wsgi.application'
+WSGI_APPLICATION = 'kyc.wsgi.application'
 
 # Database configuration (override in env-specific settings)
 DATABASES = {
@@ -75,7 +75,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'accounts.User'
+# AUTH_USER_MODEL = 'accounts.User'
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
