@@ -18,6 +18,8 @@ DEBUG = env.bool('DEBUG', default=False)
 # Allowed hosts for the project
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost'])
 
+WSGI_APPLICATION = 'kyc.wsgi.application'
+ROOT_URLCONF = 'kyc.urls'
 
 # Application definition
 INSTALLED_APPS = [
@@ -43,8 +45,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'kyc.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -60,8 +60,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'kyc.wsgi.application'
 
 # Database configuration (override in env-specific settings)
 DATABASES = {

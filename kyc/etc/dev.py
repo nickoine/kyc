@@ -1,24 +1,64 @@
 from .base import *
+import os
 
-# Development-specific settings
 DEBUG = True
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+ENV = os.getenv("ENV", "dev").lower()
+USE_DOCKER_DB = os.getenv("USE_DOCKER_DB", "false").lower() == "true"
 
-# Database configuration for development
+# Choose correct DB credentials based on ENV
+if ENV == "test":
+    db_config = {
+        "NAME": os.getenv("TEST_DB_NAME", "kyc_test_db"),
+        "USER": os.getenv("TEST_DB_USER", "kyc_test"),
+        "PASSWORD": os.getenv("TEST_DB_PASSWORD", "password"),
+        "PORT": os.getenv("TEST_DB_PORT", "5432"),
+    }
+else:  # default to dev
+    db_config = {
+        "NAME": os.getenv("DB_NAME", "kyc_db"),
+        "USER": os.getenv("DB_USER", "kyc_dev"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "password"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+    }
+
+# Host logic
+db_config["HOST"] = os.getenv("DB_HOST", "db" if USE_DOCKER_DB else "localhost")
+
+# Final DATABASES dict
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', default='dev_db'),
-        'USER': os.getenv('DB_USER', default='dev'),
-        'PASSWORD': os.getenv('DB_PASSWORD', default='password'),
-        'HOST': os.getenv('DB_HOST', default='localhost'),
-        'PORT': os.getenv('DB_PORT', default=5432)
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        **db_config,
     }
 }
 
+# Application definition
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    'kyc.src.accounts',
+    'kyc.src.questionnaires',
+    'kyc.src.responses',
+]
+
+# Optional debug print
+print(f"[settings] ENV: {ENV} | DB: {db_config['NAME']} | Host: {db_config['HOST']} | Port: {db_config['PORT']}")
+
+
+# Print out the loaded values
+print("Loaded dev.py Database Configuration:")
+for key, value in DATABASES['default'].items():
+    print(f"{key}: {value}")
+
+
 CACHEOPS = {
-    "accounts.account": {"ops": "all", "timeout": 60 * 15},  # Cache Account queries for 15 min
-    "questionnaires.questionnaire": {"ops": ("fetch",), "timeout": 60 * 30},  # Cache questionnaires for 30 min
+    "accounts.account": {"ops": "all", "timeout": 60 * 15},
+    "questionnaires.questionnaire": {"ops": ("fetch",), "timeout": 60 * 30}
 }
 
 

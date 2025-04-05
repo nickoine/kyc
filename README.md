@@ -1,61 +1,133 @@
-# Running the Application
+# 🚀 Running the Application
 
-The root directory for running commands is **kyc_project**. The application can be run either locally or inside a Docker container.
+The root directory for running commands is **`kyc_project`**.
 
-## Configuration
+---
 
-Configuration files are located in the `etc` directory.
+## ⚙️ Configuration
 
-## Running Locally
+All environment configuration files live in the `etc/` directory, including:
 
-### Development Mode
-1. In the `.env` file, set `DB_HOST=localhost`.
-2. Set the environment variable:  
-   ```sh
+- `docker-compose.yml`
+- `.env`
+
+You can control the application behavior using two key environment variables:
+
+- `ENV`: Defines the mode (`dev` or `test`)
+- `USE_DOCKER_DB`: Toggles between using a Dockerized DB or local DB
+
+---
+
+## 🐳 Development Mode (Running in Docker)
+
+1. Set environment:
+   ```bash
    export ENV=dev
+   export USE_DOCKER_DB=true
    ```
-3. Run the application:
-   ```sh
-   python manage.py runserver
+2. Build Docker images:
+   ```bash
+   docker-compose build
+   ```
+3. Start services:
+   ```bash
+   docker-compose up
    ```
 
-### Test Mode
-1. In the `.env` file, set `DB_HOST=localhost`.
-2. Set the environment variable:
-   ```sh
-   export ENV=test
-   ```
-3. Run tests using Django's test runner:
-   ```sh
-   python manage.py test
-   ```
-4. To run tests with `pytest`, set the `PYTHONPATH` environment variable:
-   ```sh
+---
+
+## 🧪 Test Mode (Using Docker)
+
+1. Run tests with `pytest` (independent of `ENV`):
+   ```bash
    export PYTHONPATH=.
    pytest
    ```
 
-## Running in Docker
-
-### Development Mode
-1. In the `.env` file, set `DB_HOST=db`.
-2. Build the Docker images:
-   ```sh
-   docker-compose build
-   ```
-3. Start the containers:
-   ```sh
-   docker-compose up
+2. Set test environment:
+   ```bash
+   export ENV=test
+   export USE_DOCKER_DB=true
    ```
 
-### Test Mode
-1. In the `.env` file, set `DB_HOST=db`.
-2. Build the Docker images for testing:
-   ```sh
-   docker-compose -f docker-compose.test.yml build
+3. Build and run test containers:
+   ```bash
+   docker-compose -f docker-compose.test.yml up --build
    ```
-3. Start the test containers:
-   ```sh
-   docker-compose -f docker-compose.test.yml up
+
+4. Run Django tests:
+   ```bash
+   python manage.py test
    ```
+   
+5. Reset the Test DB Volume:
+   ```bash
+   docker-compose -f docker-compose.test.yml down -v
+   ```
+---
+
+## 🔀 Hybrid Setup (App Local + DB in Docker)
+
+This setup allows local development of the Django app using a DB inside Docker.
+
+1. Start the database container:
+   ```bash
+   docker start <db_container_name>
+   ```
+
+2. Switch to hybrid mode:
+   ```bash
+   export ENV=dev
+   export USE_DOCKER_DB=true
+   ```
+
+3. Run the app locally:
+   ```bash
+   python manage.py runserver
+   ```
+
+---
+
+## 💻 Fully Local Setup (No Docker)
+
+To run both Django and PostgreSQL locally:
+
+1. Start PostgreSQL:
+   ```bash
+   sudo service postgresql start
+   ```
+
+2. Allow local connections (edit `pg_hba.conf` to use `trust` or `md5`), then restart:
+   ```bash
+   sudo service postgresql restart
+   ```
+
+3. Set `.env` or shell values:
+   ```env
+   ENV=dev
+   DB_HOST=localhost
+   USE_DOCKER_DB=false
+   ```
+
+4. Apply migrations and run:
+   ```bash
+   python manage.py migrate
+   python manage.py runserver
+   ```
+
+---
+
+## 🔁 Switching Between Docker and Local DB
+
+To toggle DB source easily:
+
+- Docker DB:
+  ```bash
+  export USE_DOCKER_DB=true
+  ```
+
+- Local DB:
+  ```bash
+  export USE_DOCKER_DB=false
+  ```
 

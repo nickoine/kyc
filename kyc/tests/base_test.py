@@ -8,7 +8,7 @@ from django.db import models
 import re
 from typing import Union, Pattern
 from unittest.mock import MagicMock, patch
-from .base_model import DBManager, BaseModel
+from ..common.base_model import DBManager, BaseModel
 
 
 class ModelTest(BaseModel):
@@ -18,12 +18,12 @@ class ModelTest(BaseModel):
 
     class Meta:
         managed = False
-        app_label = "test"
+        app_label = "kyc.src.accounts"
 
 
-@override_settings(INSTALLED_APPS=["test"])
+@override_settings(INSTALLED_APPS=["kyc.src.accounts"])
 class TestClassBase(SimpleTestCase):
-    """Base class for unit tests, ensuring consistent setup and isolation."""
+    """Enhanced base test class with proper isolation"""
 
 
     def setUp(self) -> None:

@@ -5,8 +5,8 @@ from unittest.mock import patch, MagicMock, call
 from django.db import IntegrityError, DatabaseError
 
 # Internal
-from ..base_test import TestClassBase
-from ..base_model import BaseModel
+from .base_test import TestClassBase
+from kyc.common.base_model import BaseModel
 
 
 class TestManagerGetByID(TestClassBase):

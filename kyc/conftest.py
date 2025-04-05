@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kyc.etc.test")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kyc.etc.dev")
 django.setup()
 
 
