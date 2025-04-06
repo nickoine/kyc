@@ -49,7 +49,7 @@ class DBManager(models.Manager[T], AbstractManager):
         except ObjectDoesNotExist:
             return None
         except Exception as e:
-            self._log_error("Unexpected error during fetching", None, e, is_exception=True)
+            self._log_error("Unexpected error during fetching by id", None, e, is_exception=True)
             raise ValueError(str(e)) from e
 
 
@@ -101,18 +101,16 @@ class DBManager(models.Manager[T], AbstractManager):
         if not objects:
             return []
 
-        model_name = self.model.__name__
-
         try:
             created_instances = self.bulk_create(objects, batch_size=batch_size)
             return created_instances
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_create {model_name}", None, e)
+            self._log_error(f"IntegrityError during bulk_create", None, e)
 
         except Exception as e:
             self._log_error(
-                f"Unexpected error during bulk_create {model_name}", None, e, is_exception=True
+                f"Unexpected error during bulk_create", None, e, is_exception=True
             )
             raise
         return []
@@ -129,8 +127,6 @@ class DBManager(models.Manager[T], AbstractManager):
         if not objects or not fields:
             return []
 
-        model_name = self.model.__name__
-
         try:
             for i in range(0, len(objects), batch_size):
                 batch = objects[i:i + batch_size]
@@ -138,11 +134,11 @@ class DBManager(models.Manager[T], AbstractManager):
             return objects
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_create {model_name}", None, e)
+            self._log_error(f"IntegrityError during bulk_create", None, e)
 
         except Exception as e:
             self._log_error(
-                f"Unexpected error during bulk_create {model_name}", None, e, is_exception=True
+                f"Unexpected error during bulk_create", None, e, is_exception=True
             )
             raise
         return []
@@ -154,8 +150,6 @@ class DBManager(models.Manager[T], AbstractManager):
         if not filters:
             return []
 
-        model_name = self.model.__name__
-
         try:
             instances = list(self.filter_by(**filters))
             if instances:
@@ -163,11 +157,11 @@ class DBManager(models.Manager[T], AbstractManager):
             return instances
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_delete {model_name}", None, e)
+            self._log_error(f"IntegrityError during bulk_delete", None, e)
 
         except Exception as e:
             self._log_error(
-                f"Unexpected error during bulk_delete {model_name}", None, e, is_exception=True
+                f"Unexpected error during bulk_delete", None, e, is_exception=True
             )
             raise
         return  []
@@ -205,14 +199,14 @@ class DBManager(models.Manager[T], AbstractManager):
             log_data['instance_id'] = instance.pk
 
         error_message = str(error) if error else "Unknown error"
-        log_message = f"{error_type} in {model_name}: {error_message}"
+        log_message = f"{error_type}: {error_message}"
 
         if is_exception:
-            logger.exception(log_message, extra=log_data)
+            logger.exception(str(log_message), extra=log_data)
         elif is_information:
-            logger.info(log_message, extra=log_data)
+            logger.info(str(log_message), extra=log_data)
         else:
-            logger.error(log_message, extra=log_data)
+            logger.error(str(log_message), extra=log_data)
 
 
 class BaseModel(models.Model):
