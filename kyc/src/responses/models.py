@@ -2005,3 +2005,1716 @@ class UserResponse(BaseModel):
     #     #     # Ensure required questions aren't empty
     #     #     if self.question.is_required and not self.payload:
     #     #         raise ValidationError("Response is required")
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     """Validates the payload against question validation_rules"""
+    #     #     from .services import validate_response_payload
+    #     #     if not self.payload:
+    #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     validate_response_payload(self.question, self.payload)
+    #     #
+    #     # def clean(self):
+    #     #     # Validate payload against question type
+    #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #         raise ValidationError({
+    #     #             'payload': "Must be a number for this question"
+    #     #         })
+    #     #
+    #     #     # Ensure required questions aren't empty
+    #     #     if self.question.is_required and not self.payload:
+    #     #         raise ValidationError("Response is required")     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")    # def clean(self):
+    #     #     #     """Validates the payload against question validation_rules"""
+    #     #     #     from .services import validate_response_payload
+    #     #     #     if not self.payload:
+    #     #     #         raise ValidationError(_("Response payload cannot be empty"))
+    #     #     #     validate_response_payload(self.question, self.payload)
+    #     #     #
+    #     #     # def clean(self):
+    #     #     #     # Validate payload against question type
+    #     #     #     if self.question.type == 'number' and not str(self.payload).isdigit():
+    #     #     #         raise ValidationError({
+    #     #     #             'payload': "Must be a number for this question"
+    #     #     #         })
+    #     #     #
+    #     #     #     # Ensure required questions aren't empty
+    #     #     #     if self.question.is_required and not self.payload:
+    #     #     #         raise ValidationError("Response is required")
