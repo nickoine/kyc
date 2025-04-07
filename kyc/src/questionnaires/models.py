@@ -1,110 +1,172 @@
-# External
 from django.db import models
-
-# Internal
+from django.utils.translation import gettext_lazy as _
 from ...common.base_model import BaseModel
+from ..accounts.models import Account
 
 
 class Questionnaire(BaseModel):
     """
-    Represents a questionnaire in the system.
-    Each questionnaire can have multiple questions and can be associated with multiple accounts.
+    Represents a customizable form with multiple questions that can be assigned to accounts.
+    Supports versioning, internationalization, and lifecycle management.
     """
-    class Status(models.TextChoices):
-        ACTIVE = 'active', 'Active'
-        INACTIVE = 'inactive', 'Inactive'
-        ARCHIVED = 'archived', 'Archived'
 
-    questionnaire_name = models.CharField(
+    class Status(models.TextChoices):
+        ACTIVE = 'active', _('Active')
+        INACTIVE = 'inactive', _('Inactive')
+        ARCHIVED = 'archived', _('Archived')
+        DRAFT = 'draft', _('Draft')
+
+    class Category(models.TextChoices):
+        FINANCIAL = 'financial', _('Financial') # AND ??
+        PERSONAL = 'personal', _('Personal')
+        IT = 'info_techno', _('Info_techno')
+
+
+    accounts = models.ManyToManyField(
+        Account,
+        related_name='questionnaires',
+        blank=True,
+        verbose_name=_("Assigned Accounts"),
+        help_text=_("Accounts that can access this questionnaire.")
+    )
+    name = models.CharField(
         max_length=255,
-        verbose_name="Name",
-        help_text="The name of the questionnaire.",
-        db_index=True  # Index for faster lookups
+        db_index=True,
+        verbose_name=_("Name"),
+        help_text=_("Unique identifier for the questionnaire (e.g., 'KYC Form 2023').")
     )
-    questionnaire_type = models.CharField(
+    version = models.CharField(
+        max_length=20,
+        db_index=True,
+        default='1.0',
+        verbose_name=_("Version"),
+        help_text=_("Semantic version (e.g., 1.2.3) for tracking changes.")
+    )
+    category = models.CharField(
         max_length=50,
-        verbose_name="Type",
-        help_text="The type of questionnaire (e.g., survey, feedback)."
+        choices=Category.choices,
+        verbose_name=_("Category"),
+        help_text=_("Classification of questionnaire content.")
     )
-    questionnaire_category = models.CharField(
-        max_length=50,
-        verbose_name="Category",
-        help_text="The category of the questionnaire (e.g., financial, personal)."
-    )
-    questionnaire_language = models.JSONField(
+    supported_languages = models.JSONField(
         default=list,
-        verbose_name="Supported Languages",
-        help_text="A list of languages supported by the questionnaire."
+        verbose_name=_("Supported Languages"),
+        help_text=_("List of language codes (e.g., ['en', 'es']) for multilingual support.")
     )
-    questionnaire_description = models.TextField(
-        verbose_name="Description",
-        help_text="A detailed description of the questionnaire."
+    description = models.TextField(
+        blank=True,
+        verbose_name=_("Description"),
+        help_text=_("Purpose and instructions for respondents.")
     )
-    questionnaire_status = models.CharField(
+    status = models.CharField(
         max_length=20,
         choices=Status.choices,
-        default=Status.ACTIVE,
-        verbose_name="Status",
-        help_text="The current status of the questionnaire.",
-        db_index=True  # Index for faster filtering by status
+        default=Status.DRAFT,
+        db_index=True,
+        verbose_name=_("Status"),
+        help_text=_("Publication state of the questionnaire.")
     )
-    questionnaire_created_at = models.DateTimeField(
+    is_required = models.BooleanField(
+        default=False,
+        verbose_name=_("Is Required"),
+        help_text=_("Whether completion is mandatory for assigned accounts.")
+    )
+    created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name="Created At",
-        help_text="The timestamp when the questionnaire was created."
+        verbose_name=_("Created At"),
+        help_text=_("When this questionnaire version was created.")
     )
-    questionnaire_deleted_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name="Deleted At",
-        help_text="The timestamp when the questionnaire was deleted (optional)."
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_("Updated At"),
+        help_text=_("Last modification timestamp.")
     )
+
 
     class Meta:
-        verbose_name = "Questionnaire"
-        verbose_name_plural = "Questionnaires"
-        ordering = ['questionnaire_name']
+        verbose_name = _("Questionnaire")
+        verbose_name_plural = _("Questionnaires")
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['name', 'status'])  # Composite index
+        ]
+        permissions = [
+            ("can_publish_questionnaire", "Can publish questionnaire"),
+            ("can_assign_questionnaire", "Can assign questionnaire to accounts"),
+        ]
+
 
     def __str__(self):
-        return self.questionnaire_name
+        return f"{self.name} v{self.version})"
 
 
 class Question(BaseModel):
     """
-    Represents a question in the system.
-    Each question can belong to multiple questionnaires.
+    Represents an individual question item that can be reused across multiple questionnaires.
+    Supports various response types and validation rules.
     """
-    question_questionnaires = models.ManyToManyField(
+
+    class Type(models.TextChoices):
+        TEXT = 'text', _('Text Input')
+        MULTIPLE_CHOICE = 'multiple_choice', _('Multiple Choice') # ???
+        FILE_UPLOAD = 'file', _('File Upload')
+        DATE = 'date', _('Date Selector')
+
+    questionnaires = models.ManyToManyField(
         Questionnaire,
         related_name='questions',
-        verbose_name="Questionnaires",
-        help_text="The questionnaires this question belongs to."
+        verbose_name=_("Questionnaires"),
+        help_text=_("Forms where this question appears.")
     )
-    question_name = models.CharField(
-        max_length=255,
-        verbose_name="Question Text",
-        help_text="The text of the question.",
-        db_index=True  # Index for faster lookups
-    )
-    question_description = models.TextField(
-        verbose_name="Description",
-        help_text="A detailed description of the question."
-    )
-    question_type = models.CharField(
+    reference_code = models.CharField(
         max_length=50,
-        verbose_name="Type",
-        help_text="The type of question (e.g., text, multiple-choice)."
+        unique=True,
+        db_index=True,
+        verbose_name=_("Reference Code"),
+        help_text=_("Unique identifier for business logic (e.g., 'TAX_ID_VERIFICATION').")
     )
-    question_created_at = models.DateTimeField(
+    text = models.JSONField(
+        verbose_name=_("Question Text"),
+        help_text=_("Multilingual question content (e.g., {'en': 'Your name?', 'es': '¿Su nombre?'}).")
+    )
+    type = models.CharField(
+        max_length=50,
+        choices=Type.choices,
+        default=Type.TEXT,
+        db_index=True,
+        verbose_name=_("Response Type"),
+        help_text=_("Determines what input widget to display.")
+    )
+    validation_rules = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Validation Rules"),
+        help_text=_("Configurable validation (e.g., {'min_length': 2, 'max_length': 100}).")
+    )
+    is_required = models.BooleanField(
+        default=True,
+        verbose_name=_("Is Required"),
+        help_text=_("Whether this question must be answered.")
+    )
+    created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name="Created At",
-        help_text="The timestamp when the question was created."
+        verbose_name=_("Created At"),
+        help_text=_("When this question was first defined.")
     )
+
 
     class Meta:
-        verbose_name = "Question"
-        verbose_name_plural = "Questions"
-        ordering = ['question_name']
+        verbose_name = _("Question")
+        verbose_name_plural = _("Questions")
+        ordering = ['-reference_code']
+        indexes = [
+            models.Index(fields=['reference_code', 'type']),
+        ]
+
 
     def __str__(self):
-        return self.question_name
+        # Safely access the first available translation
+        if isinstance(self.text, dict) and self.text:
+            first_text = next(iter(self.text.values()), 'Untitled Question')
+            return f"{self.reference_code}: {str(first_text)[:50]}"
+        return f"{self.reference_code}: (No text defined)"

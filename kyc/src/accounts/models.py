@@ -1,243 +1,169 @@
 # External
 from django.db import models
-from django.contrib.auth.models import AbstractUser, PermissionsMixin, Group, Permission
+from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+from django.core.validators import MinLengthValidator
 
 # Internal
 from ...common.base_model import BaseModel
 from .service import UserManager
 
 
-class User(AbstractUser, PermissionsMixin):
+class User(BaseModel, AbstractUser):
     """
-    Represents a user in the system.
-    Each user has a unique email address and is linked to a single account.
+    Custom user model representing system users.
+    Uses email as the primary identifier instead of username.
     """
 
-    USERNAME_FIELD = 'user_email'
+    username = None
+
+    # Authentication fields
+    email = models.EmailField(
+        _('email_address'),
+        unique=True,
+        help_text=_('The unique email address used for authentication.'),
+        error_messages={
+            'unique': _("A user with that email already exists."),
+        },
+    )
+    # Registration metadata
+    registration_method = models.CharField(
+        _('registration_method'),
+        max_length=20,
+        choices=[
+            ('email', 'Email'),
+            ('google', 'Google'),
+            ('facebook', 'Facebook'),
+            ('apple', 'AppleID')
+        ],
+        default='email',
+        help_text=_('Method used for account registration.')
+    )
+
+    date_joined = models.DateTimeField(
+        _('date_joined'),
+        auto_now_add=True,
+        help_text=_('Timestamp when the user was created.')
+    )
+
+    # Required fields for createsuperuser
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
     objects = UserManager()
 
-    user_email = models.EmailField(
-        unique=True,
-        verbose_name="Email",
-        help_text="The unique email address used for authentication.",
-        db_index=True  # Index for faster lookups
-    )
-    user_account = models.OneToOneField(
-        'Account',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        verbose_name="Account",
-        help_text="The account associated with this user."
-    )
-    user_created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Created At",
-        help_text="The timestamp when the user was created."
-    )
-
-    # Groups and Permissions (required for Django's auth system)
-    groups = models.ManyToManyField(
-        Group,
-        verbose_name='groups',
-        blank=True,
-        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-        related_name="custom_user_groups",  # Custom related name to avoid clashes
-        related_query_name="user",
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        verbose_name='user permissions',
-        blank=True,
-        help_text='Specific permissions for this user.',
-        related_name="custom_user_permissions",  # Custom related name to avoid clashes
-        related_query_name="user",
-    )
 
     class Meta:
-        verbose_name = "User"
-        verbose_name_plural = "Users"
-        ordering = ['user_email']
+        verbose_name = _('User')
+        verbose_name_plural = _('Users')
+        ordering = ['email']
+        indexes = [
+            models.Index(fields=['email']),
+        ]
 
-    def __str__(self):
-        return self.user_email
+
+    def __str__(self) -> str:
+        return f"User {self.email or '[unsaved]'} via {self.registration_method or '[unknown]'}"
 
 
-class Role(BaseModel):
+    def clean(self) -> None:
+        super().clean()
+        self.email = self.__class__.objects.normalize_email(self.email)
+
+
+    @property
+    def group_names(self) -> str:
+        return ", ".join(self.groups.values_list("name", flat=True))
+
+
+class Account(models.Model):
     """
-    Represents a role in the system.
-    Each role can be assigned to multiple accounts.
-    """
-    role_name = models.CharField(
-        max_length=50,
-        unique=True,
-        verbose_name="Role Name",
-        help_text="The name of the role (e.g., admin, user).",
-        db_index=True  # Index for faster lookups
-    )
-    role_description = models.TextField(
-        blank=True,
-        null=True,
-        verbose_name="Description",
-        help_text="An optional description of the role."
-    )
-    role_created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Created At",
-        help_text="The timestamp when the role was created."
-    )
-    role_updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Updated At",
-        help_text="The timestamp when the role was last updated."
-    )
-
-    class Meta:
-        verbose_name = "Role"
-        verbose_name_plural = "Roles"
-        ordering = ['role_name']
-
-    def __str__(self):
-        return self.role_name
-
-
-class Account(BaseModel):
-    """
-    Represents a user account in the system.
-    Each account is linked to a single user and has a role.
+    Represents a verified user account in the system.
+    Each account is uniquely tied to a single user and tracks verification status.
     """
 
-    account_user = models.OneToOneField(
-        'Account',
+    user = models.OneToOneField(
+        'User',
         on_delete=models.CASCADE,
-        verbose_name="User",
-        help_text="The user associated with this account."
-    )
-    account_admin = models.BooleanField(
-        default=False,
-        verbose_name="Is Admin",
-        help_text="Indicates whether this account has admin privileges."
-    )
-    account_role = models.ForeignKey(
-        'Role',
-        on_delete=models.CASCADE,
-        verbose_name="Role",
-        help_text="The role assigned to this account.",
-        db_index=True  # Index for faster filtering by role
-    )
-    account_questionnaires = models.ManyToManyField(
-        'questionnaires.Questionnaire',
-        related_name='accounts',
-        verbose_name="Questionnaires",
-        help_text="The questionnaires associated with this account."
+        related_name='account',
+        verbose_name=_("User"),
+        help_text=_("The single user associated with this account.")
     )
     account_username = models.CharField(
+        _("username"),
         max_length=150,
         unique=True,
-        verbose_name="Username",
-        help_text="The unique username for this account.",
-        db_index=True  # Index for faster lookups
-    )
-    account_name = models.CharField(
-        max_length=100,
-        verbose_name="First Name",
-        help_text="The first name of the account holder."
-    )
-    account_surname = models.CharField(
-        max_length=100,
-        verbose_name="Surname",
-        help_text="The surname of the account holder."
-    )
-    account_mobile = models.CharField(
-        max_length=15,
-        blank=True,
-        null=True,
-        verbose_name="Mobile Number",
-        help_text="The mobile number of the account holder (optional)."
-    )
-    account_verified = models.BooleanField(
-        default=False,
-        verbose_name="Is Verified",
-        help_text="Indicates whether the account has been verified."
-    )
-    account_created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Created At",
-        help_text="The timestamp when the account was created."
-    )
-    account_updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name="Updated At",
-        help_text="The timestamp when the account was last updated."
-    )
-    account_last_login = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name="Last Login",
-        help_text="The timestamp of the last login for this account."
-    )
-
-    class Meta:
-        verbose_name = "Account"
-        verbose_name_plural = "Accounts"
-        ordering = ['account_username']
-
-    def __str__(self):
-        return self.account_username
-
-
-class Admin(BaseModel):
-    """
-    Represents an admin user in the system.
-    Each admin is linked to a single user and account, and has a specific role.
-    """
-
-    admin_user = models.OneToOneField(
-        'Account',
-        on_delete=models.CASCADE,
-        verbose_name="User",
-        help_text="The user associated with this admin.",
-        db_index=True,  # Index for faster lookups
-        related_name = "admin_as_user"  # Unique reverse accessor
-    )
-    admin_account = models.OneToOneField(
-        'Account',
-        on_delete=models.CASCADE,
-        verbose_name="Account",
-        help_text="The account associated with this admin.",
         db_index=True,
-        related_name="admin_as_account"
+        validators=[MinLengthValidator(3)],
+        help_text=_("Unique public identifier for this account (3-150 characters).")
     )
-    role = models.ForeignKey(
-        'Role',
-        on_delete=models.CASCADE,
-        verbose_name="Role",
-        help_text="The role assigned to this admin.",
-        db_index=True  # Index for faster filtering by role
+    verified = models.BooleanField(
+        _("verified_status"),
+        default=False,
+        db_index = True,
+        help_text=_("Designates whether this account passed verification checks.")
     )
-    admin_username = models.CharField(
-        max_length=150,
-        unique=True,
-        verbose_name="Username",
-        help_text="The unique username for this admin.",
-        db_index=True  # Index for faster lookups
-    )
-    admin_created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Created At",
-        help_text="The timestamp when the admin was created."
-    )
-    admin_last_login = models.DateTimeField(
+    verification_date = models.DateTimeField(
+        _("verification_timestamp"),
         null=True,
         blank=True,
-        verbose_name="Last Login",
-        help_text="The timestamp of the last login for this admin."
+        help_text=_("When verification was completed (auto-set when verified=True).")
+    )
+    created_at = models.DateTimeField(
+        _("created_at"),
+        auto_now_add=True,
+        help_text=_("When this account was first registered.")
+    )
+    updated_at = models.DateTimeField(
+        _("updated_at"),
+        auto_now=True,
+        help_text=_("When this account was last modified.")
+    )
+    last_login = models.DateTimeField(
+        _("last_login"),
+        null=True,
+        blank=True,
+        help_text=_("Most recent authenticated access to this account.")
     )
 
-    class Meta:
-        verbose_name = "Admin"
-        verbose_name_plural = "Admins"
-        ordering = ['admin_username']
 
-    def __str__(self):
-        return self.admin_username
+    class Meta:
+        verbose_name = _("Account")
+        verbose_name_plural = _("Accounts")
+        ordering = ['account_username']
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(verified=False) | models.Q(verification_date__isnull=False),
+                name="verified_has_date"
+            )
+        ]
+        indexes = [
+            models.Index(fields=['account_username', 'verified']) # Composite index
+        ]
+        permissions = [
+            ("can_verify_account", "Can manually verify accounts"),
+            ("can_suspend_account", "Can suspend or deactivate accounts"),
+        ]
+
+
+    def __str__(self) -> str:
+        return f"{self.account_username} ({'Verified' if self.verified else 'Unverified'})."
+
+
+    def clean(self) -> None:
+        """Validate verification logic before saving."""
+
+        super().clean()
+        if self.verified and not self.verification_date:
+            self.verification_date = timezone.now()
+        raise ValidationError({
+            'verification_date': _("Verification date can be set after account is verified.")
+        })
+
+
+    @property
+    def age_days(self) -> int:
+        """Calculate account age in days (for business logic)."""
+        return (timezone.now() - self.created_at).days if self.created_at else None

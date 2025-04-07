@@ -1,8 +1,4 @@
-import random
-import string
-
 from django.contrib.auth.models import BaseUserManager
-
 
 class UserManager(BaseUserManager):
 
@@ -85,3 +81,8 @@ class UserManager(BaseUserManager):
 # def demote_to_user(self):
 #     self.role = Role.objects.get(role_name='User')
 #     self.save()
+#
+# def assign_default_group(user):
+#     if user.registration_method == 'email':
+#         group = Group.objects.get(name='email_users')
+#         user.groups.add(group)
