@@ -13,7 +13,6 @@ class Questionnaire(BaseModel):
     class Status(models.TextChoices):
         ACTIVE = 'active', _('Active')
         INACTIVE = 'inactive', _('Inactive')
-        ARCHIVED = 'archived', _('Archived')
         DRAFT = 'draft', _('Draft')
 
     class Category(models.TextChoices):
@@ -70,6 +69,11 @@ class Questionnaire(BaseModel):
         default=False,
         verbose_name=_("Is Required"),
         help_text=_("Whether completion is mandatory for assigned accounts.")
+    )
+    is_public = models.BooleanField(
+        default=False,
+        verbose_name=_("Publicly Available"),
+        help_text=_("Allows clients to complete this questionnaire voluntarily.")
     )
     created_at = models.DateTimeField(
         auto_now_add=True,

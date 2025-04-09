@@ -165,5 +165,5 @@ class Account(models.Model):
 
     @property
     def age_days(self) -> int:
-        """Calculate account age in days (for business logic)."""
+        """Calculate account age in days."""
         return (timezone.now() - self.created_at).days if self.created_at else None
