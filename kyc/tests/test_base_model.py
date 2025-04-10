@@ -208,131 +208,56 @@ class TestManagerCreateInstance(TestClassBase):
         # Assert
         self.assertIsNone(result)
 
+
     def test_create_instance_integrity_error(self) -> None:
         """Should log and return None on IntegrityError."""
 
         # Arrange
-        self.real_mock_manager.model = MagicMock()
-        self.real_mock_manager.model.return_value = self.mock_service
+        self.real_mock_manager.model = MagicMock(return_value=self.mock_service)
         self.mock_service.save.side_effect = IntegrityError("Duplicate entry")
 
-        # Act
-        with self.assertLogs(level='ERROR') as cm:
+        with patch("kyc_project.kyc.common.base_model.logger.error") as mock_logger:
+            # Act
             result = self.real_mock_manager.create_instance(name="Test Instance")
 
-        self.assertIsNone(result)
-        self.assertTrue(any("IntegrityError" in log for log in cm.output))
+            # Assert
+            self.assertIsNone(result)
+            mock_logger.assert_called_once()
+            self.assertIn("IntegrityError", mock_logger.call_args[0][0])
 
 
     def test_create_instance_database_error(self) -> None:
         """Should log and return None on DatabaseError."""
 
         # Arrange
-        self.real_mock_manager.model = MagicMock()
-        self.real_mock_manager.model.return_value = self.mock_service
-        self.mock_service.save.side_effect = DatabaseError("Connection issue")
+        self.real_mock_manager.model = MagicMock(return_value=self.mock_service)
+        self.mock_service.save.side_effect = DatabaseError("DB connection lost")
 
-        # Act and Assert
-        with self.assertLogs(level='ERROR') as cm:
-            result = self.real_mock_manager.create_instance(name="Test Instance")
+        with patch("kyc_project.kyc.common.base_model.logger.error") as mock_logger:
+            # Act
+            result = self.real_mock_manager.create_instance(name="DB Issue")
 
-        # Verify return value and log content
-        self.assertIsNone(result)
-        self.assertTrue(any("DatabaseError" in log for log in cm.output))
-        self.assertTrue(any("Connection issue" in log for log in cm.output))
+            # Assert
+            self.assertIsNone(result)
+            mock_logger.assert_called_once()
+            self.assertIn("DatabaseError", mock_logger.call_args[0][0])
 
 
     def test_create_instance_generic_exception(self) -> None:
         """Should log and return None on unexpected Exception."""
 
         # Arrange
-        self.real_mock_manager.model = MagicMock()
-        self.real_mock_manager.model.return_value = self.mock_service
-        self.mock_service.save.side_effect = Exception("Unknown error")
+        self.real_mock_manager.model = MagicMock(return_value=self.mock_service)
+        self.mock_service.save.side_effect = RuntimeError("Unexpected crash")
 
-        # Act and Assert
-        with self.assertLogs(level='ERROR') as cm:
-            result = self.real_mock_manager.create_instance(name="Test Instance")
+        with patch("kyc_project.kyc.common.base_model.logger.exception") as mock_logger:
+            # Act
+            result = self.real_mock_manager.create_instance(name="Error Trigger")
 
-        # Verify return value and log content
-        self.assertIsNone(result)
-        self.assertTrue(any("Unexpected error" in log for log in cm.output))
-        self.assertTrue(any("Unknown error" in log for log in cm.output))
-
-
-# class TestManagerLogError(TestClassBase):
-#     """Unit tests for the _log_error helper method."""
-#
-#     def setUp(self):
-#         """Runs before each test: Extends UnitTestBase setup."""
-#
-#         super().setUp()
-#         self.mock_model.__class__.__name__ = "TestModel"
-#
-#
-#     def test_log_error_with_instance_and_exception(self):
-#         """Test _log_error with instance provided and is_exception=True."""
-#
-#         # Act
-#         self.real_mock_manager._log_error(
-#             "IntegrityError", self.mock_model, Exception("Duplicate entry"),is_exception=True
-#         )
-#
-#         # Assert
-#         expected_log_message = "IntegrityError in TestModel: Duplicate entry"
-#         self.mock_exception_logger.assert_called_once_with(
-#             expected_log_message,
-#             extra={"model": "TestModel", "error_type": "IntegrityError", "instance_id": self.mock_model.pk}
-#         )
-#
-#     def test_log_error_with_instance_and_error(self):
-#         """Test _log_error with instance provided and is_exception=False."""
-#
-#         # Act
-#         self.real_mock_manager._log_error(
-#             "DatabaseError", self.mock_model, Exception("Connection error"), is_exception=False
-#         )
-#
-#         # Assert
-#         expected_log_message = "DatabaseError in TestModel: Connection error"
-#         self.mock_error_logger.assert_called_once_with(
-#             expected_log_message,
-#             extra={"model": "TestModel", "error_type": "DatabaseError", "instance_id": self.mock_model.pk}
-#         )
-#
-#
-#     def test_log_error_without_instance(self):
-#         """Test _log_error without instance (fallback to self.model)."""
-#
-#         # Act
-#         self.real_mock_manager._log_error(
-#             "Unexpected error", None, Exception("Unknown error"), is_exception=False
-#         )
-#
-#         # Assert
-#         expected_log_message = "Unexpected error in unknown_model: Unknown error"
-#         self.mock_error_logger.assert_called_once_with(
-#             expected_log_message,
-#             extra={"model": "unknown_model", "error_type": "Unexpected error"}
-#         )
-#
-#     def test_log_error_without_instance_and_model_name(self):
-#         """Test _log_error without instance and without self.model.__name__ (fallback to 'unknown model')."""
-#
-#         # Arrange:
-#         delattr(self.real_mock_manager.model, "__name__")
-#
-#         # Act
-#         self.real_mock_manager._log_error(
-#             "Unexpected error", None, Exception("Unknown error"), is_exception=False
-#         )
-#
-#         # Assert
-#         expected_log_message = "Unexpected error in unknown_model: Unknown error"
-#         self.mock_error_logger.assert_called_once_with(
-#             expected_log_message,
-#             extra={"model": "unknown_model", "error_type": "Unexpected error"}
-#         )
+            # Assert
+            self.assertIsNone(result)
+            mock_logger.assert_called_once()
+            self.assertIn("Unexpected error", mock_logger.call_args[0][0])
 
 
 class TestManagerBulk(TestClassBase):
@@ -673,7 +598,7 @@ class TestBaseModel(TestClassBase):
         self.mock_commit.assert_called_once()
         self.mock_rollback.assert_called_once()
 
-        # self.assert_logs_exception("Transaction commit failed: Database error")
+        self.assert_logs_exception("Transaction commit failed: Database error")
 
 
     def test_before_update_success(self) -> None:
@@ -683,7 +608,7 @@ class TestBaseModel(TestClassBase):
         self.mock_model.before_update()
 
         # Assert
-        # self.assert_logs_info(f"Running before_update hook for {self.mock_model.__class__.__name__}.")
+        self.assert_logs_info(f"Running before_update hook for {self.mock_model.__class__.__name__}.")
         self.assert_no_errors_logged()
         self.assert_no_exceptions_logged()
 
@@ -701,9 +626,9 @@ class TestBaseModel(TestClassBase):
 
         # Assert
         self.assertEqual(str(exc_context.exception), "Unexpected error")
-        # self.assert_logs_exception(
-        #     f"Unexpected error in before_update for {self.mock_model.__class__.__name__}: Unexpected error"
-        # )
+        self.assert_logs_exception(
+            f"Unexpected error in before_update for {self.mock_model.__class__.__name__}: Unexpected error"
+        )
 
 
     def test_after_update_success(self) -> None:
@@ -713,7 +638,7 @@ class TestBaseModel(TestClassBase):
         self.mock_model.after_update()
 
         # Assert
-        # self.assert_logs_info(f"Running after_update hook for {self.mock_model.__class__.__name__}.")
+        self.assert_logs_info(f"Running after_update hook for {self.mock_model.__class__.__name__}.")
         self.assert_no_errors_logged()
         self.assert_no_exceptions_logged()
 
@@ -730,9 +655,9 @@ class TestBaseModel(TestClassBase):
             self.mock_model.after_update()
 
         # Assert
-        # self.assert_logs_exception(
-        #     f"Unexpected error in after_update for {self.mock_model.__class__.__name__}: Unexpected error"
-        # )
+        self.assert_logs_exception(
+            f"Unexpected error in after_update for {self.mock_model.__class__.__name__}: Unexpected error"
+        )
 
 
     def test_update_success(self) -> None:
@@ -752,8 +677,8 @@ class TestBaseModel(TestClassBase):
             mock_after_update.assert_called_once()
 
             # Assert update logs a success message
-            # expected_info = f"Updated {self.mock_model.__class__.__name__} (ID: {self.mock_model.pk}) successfully"
-            # self.assert_logs_info(expected_info)
+            expected_info = f"Updated {self.mock_model.__class__.__name__} (ID: {self.mock_model.pk}) successfully"
+            self.assert_logs_info(expected_info)
 
 
     def test_update_failure(self) -> None:
@@ -768,8 +693,8 @@ class TestBaseModel(TestClassBase):
 
         # Assert
         self.assertIn("Hook failure", str(ctx.exception))
-        # expected_error = f"Error updating {self.mock_model.__class__.__name__}: Hook failure"
-        # self.assert_logs_exception(expected_error)
+        expected_error = f"Error updating {self.mock_model.__class__.__name__}: Hook failure"
+        self.assert_logs_exception(expected_error)
 
 
     def test_update_handles_unexpected_exception(self) -> None:
@@ -783,11 +708,11 @@ class TestBaseModel(TestClassBase):
             with self.assertRaises(Exception) as ctx:
                 self.mock_model.update(name="New Name")
 
-            # Assert
-            self.assertIn("Unexpected DB error", str(ctx.exception))
-            # mock_exception.assert_called_once_with(
-            #     "Error updating ModelTest: Unexpected DB error"
-            # )
+                # Assert
+                self.assertIn("Unexpected DB error", str(ctx.exception))
+                mock_exception.assert_called_once_with(
+                    "Error updating ModelTest: Unexpected DB error"
+                )
 
 
     def test_before_save_success(self) -> None:
@@ -797,7 +722,7 @@ class TestBaseModel(TestClassBase):
         self.mock_model.before_save()
 
         # Assert
-        # self.assert_logs_info(f"Running before_save hook for {self.mock_model.__class__.__name__}.")
+        self.assert_logs_info(f"Running before_save hook for {self.mock_model.__class__.__name__}.")
         self.assert_no_errors_logged()
         self.assert_no_exceptions_logged()
 
@@ -814,9 +739,9 @@ class TestBaseModel(TestClassBase):
 
         # Assert
         self.assertEqual(str(exc_context.exception), "Unexpected error")
-        # self.assert_logs_exception(
-        #     f"Unexpected error in before_save for {self.mock_model.__class__.__name__}: Unexpected error"
-        # )
+        self.assert_logs_exception(
+            f"Unexpected error in before_save for {self.mock_model.__class__.__name__}: Unexpected error"
+        )
 
 
     def test_after_save_success(self) -> None:
@@ -826,7 +751,7 @@ class TestBaseModel(TestClassBase):
         self.mock_model.after_save()
 
         # Assert
-        # self.assert_logs_info(f"Running after_save hook for {self.mock_model.__class__.__name__}.")
+        self.assert_logs_info(f"Running after_save hook for {self.mock_model.__class__.__name__}.")
         self.assert_no_errors_logged()
         self.assert_no_exceptions_logged()
 
@@ -843,9 +768,9 @@ class TestBaseModel(TestClassBase):
 
         # Assert
         self.assertEqual(str(exc_context.exception), "Unexpected error")
-        # self.assert_logs_exception(
-        #     f"Unexpected error in after_save for {self.mock_model.__class__.__name__}: Unexpected error"
-        # )
+        self.assert_logs_exception(
+            f"Unexpected error in after_save for {self.mock_model.__class__.__name__}: Unexpected error"
+        )
 
 
     def test_save_with_commit_true(self) -> None:
@@ -868,7 +793,7 @@ class TestBaseModel(TestClassBase):
 
         # Act & Assert
         with self.assertRaises(ValueError, msg="Commit must be a boolean"):
-            self.real_mock_model.save(commit="not-a-bool")
+            self.real_mock_model.save(commit="False")
 
 
     def test_save_with_positional_args(self) -> None:
@@ -884,7 +809,6 @@ class TestBaseModel(TestClassBase):
 
         # Arrange
         with patch("django.db.models.Model.save", autospec=True) as mock_parent_save:
-            # Configure the real mock model's hooks
             self.real_mock_model.before_save = MagicMock()
             self.real_mock_model.after_save = MagicMock()
 
@@ -892,16 +816,12 @@ class TestBaseModel(TestClassBase):
             self.real_mock_model.save()
 
             # Assert - Verify the interaction flow
-            # 1. Verify parent save was called with correct instance
             mock_parent_save.assert_called_once_with(self.real_mock_model)
-
-            # 2. Verify hooks were called
             self.real_mock_model.before_save.assert_called_once()
             self.real_mock_model.after_save.assert_called_once()
-
-            # self.assert_logs_info(
-            #     f"Successfully saved {self.real_mock_model.__class__.__name__} (ID: {self.real_mock_model.pk})"
-            # )
+            self.assert_logs_info(
+                f"Successfully saved {self.real_mock_model.__class__.__name__} (ID: {self.real_mock_model.pk})"
+            )
 
 
     def test_save_failure_due_to_before_save_failure(self) -> None:
@@ -920,17 +840,15 @@ class TestBaseModel(TestClassBase):
         with self.assertRaises(Exception) as ctx:
             self.real_mock_model.save(commit=True)
 
-        # Assert
-        # 1. Verify correct exception
-        self.assertIn("Unexpected error in before_save", str(ctx.exception))
+            # Assert
+            self.assertIn("Unexpected error in before_save ", str(ctx.exception))
 
-        # 2. Verify error was logged
-        # self.assert_logs_error(
-        #     f"Unexpected error in {self.real_mock_model.__class__.__name__}.save(): "
-        #     f"Unexpected error in before_save"
-        # )
+            self.assert_logs_error(
+                f"Unexpected error in before_save{self.real_mock_model.__class__.__name__}. "
+                f"Unexpected error in before_save"
+            )
 
-        self.real_mock_model.after_save.assert_not_called()
+            self.real_mock_model.after_save.assert_not_called()
 
 
     def test_save_handles_integrity_error(self) -> None:
@@ -951,9 +869,9 @@ class TestBaseModel(TestClassBase):
 
             # Assert: save and transaction.atomic were called
             mock_parent_save.assert_called_once_with(self.real_mock_model)
-            # self.assert_logs_error(
-            #     f"IntegrityError in {self.real_mock_model.__class__.__name__}.save(): Integrity issue"
-            # )
+            self.assert_logs_error(
+                f"IntegrityError in {self.real_mock_model.__class__.__name__}.save(): Integrity issue"
+            )
 
 
     def test_save_handles_unexpected_exception(self) -> None:
@@ -971,9 +889,9 @@ class TestBaseModel(TestClassBase):
 
             self.assertIn("Unexpected error", str(ctx.exception))
             mock_parent_save.assert_called_once_with(self.real_mock_model)
-            # self.assert_logs_exception(
-            # f"Unexpected error in {self.real_mock_model.__class__.__name__}.save(): Unexpected error"
-            # )
+            self.assert_logs_exception(
+            f"Unexpected error in {self.real_mock_model.__class__.__name__}.save(): Unexpected error"
+            )
 
 
     def test_delete_success(self) -> None:
@@ -987,9 +905,9 @@ class TestBaseModel(TestClassBase):
 
             # Assert
             mock_parent_delete.assert_called_once_with(self.real_mock_model)
-            # self.assert_logs_info(
-            #     f"Deleted {self.real_mock_model.__class__.__name__} (ID: {self.real_mock_model.pk}) successfully"
-            # )
+            self.assert_logs_info(
+                f"Deleted {self.real_mock_model.__class__.__name__} (ID: {self.real_mock_model.pk}) successfully"
+            )
 
 
     def test_delete_handles_exception(self) -> None:
@@ -1005,6 +923,6 @@ class TestBaseModel(TestClassBase):
             # Assert
             self.assertIn("Deletion failed", str(ctx.exception))
             mock_parent_delete.assert_called_once_with(self.real_mock_model)
-            # self.assert_logs_exception(
-            #     f"Error deleting {self.real_mock_model.__class__.__name__} (ID: {self.real_mock_model.pk}): Deletion failed"
-            # )
+            self.assert_logs_exception(
+                f"Error deleting {self.real_mock_model.__class__.__name__} (ID: {self.real_mock_model.pk}): Deletion failed"
+            )

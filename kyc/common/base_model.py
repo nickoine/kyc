@@ -7,7 +7,7 @@ from django.db import models
 
 # Internal
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 import logging
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class DBManager(models.Manager[T], AbstractManager):
         except ObjectDoesNotExist:
             return None
         except Exception as e:
-            self._log_error("Unexpected error during fetching by id", None, e, is_exception=True)
+            logger.exception(f"Unexpected error during fetching by id {obj_id}",None, e)
             raise ValueError(str(e)) from e
 
 
@@ -83,11 +83,11 @@ class DBManager(models.Manager[T], AbstractManager):
             return instance
 
         except IntegrityError as e:
-            self._log_error("IntegrityError", instance, e)
+            logger.error("IntegrityError", instance, e)
         except DatabaseError as e:
-            self._log_error("DatabaseError", instance, e)
+            logger.error("DatabaseError", instance, e)
         except Exception as e:
-            self._log_error("Unexpected error", instance, e, is_exception=True)
+            logger.exception("Unexpected error", instance, e)
 
         return None
 
@@ -106,12 +106,10 @@ class DBManager(models.Manager[T], AbstractManager):
             return created_instances
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_create", None, e)
+            logger.error(f"IntegrityError during bulk_create", None, e)
 
         except Exception as e:
-            self._log_error(
-                f"Unexpected error during bulk_create", None, e, is_exception=True
-            )
+            logger.exception(f"Unexpected error during bulk_create", None, e)
             raise
         return []
 
@@ -134,12 +132,10 @@ class DBManager(models.Manager[T], AbstractManager):
             return objects
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_create", None, e)
+            logger.error("IntegrityError during bulk_create", None, e)
 
         except Exception as e:
-            self._log_error(
-                f"Unexpected error during bulk_create", None, e, is_exception=True
-            )
+            logger.exception(f"Unexpected error during bulk_create", None, e)
             raise
         return []
 
@@ -157,56 +153,12 @@ class DBManager(models.Manager[T], AbstractManager):
             return instances
 
         except IntegrityError as e:
-            self._log_error(f"IntegrityError during bulk_delete", None, e)
+            logger.error(f"IntegrityError during bulk_delete", None, e)
 
         except Exception as e:
-            self._log_error(
-                f"Unexpected error during bulk_delete", None, e, is_exception=True
-            )
+            logger.exception(f"Unexpected error during bulk_delete", None, e)
             raise
         return  []
-
-
-    def _log_error(
-            self,
-            error_type: str,
-            instance: Optional[BaseModel] = None,
-            error: Optional[Exception] = None,
-            *,
-            is_exception: bool = False,
-            is_information: bool = False,
-            extra: Optional[Dict[str, Any]] = None,
-            **kwargs: Any
-    ) -> None:
-        """Unified logging helper for repository operations with structured context."""
-
-        model_name = "unknown_model"
-        if instance is not None:
-            model_name = instance.__class__.__name__
-        elif hasattr(self, 'model') and hasattr(self.model, '__name__'):
-            model_name = self.model.__name__
-
-        log_data = {
-            "model": model_name,
-            "error_type": error_type,
-            **kwargs
-        }
-
-        if extra:
-            log_data.update(extra)
-
-        if instance is not None and hasattr(instance, 'pk'):
-            log_data['instance_id'] = instance.pk
-
-        error_message = str(error) if error else "Unknown error"
-        log_message = f"{error_type}: {error_message}"
-
-        if is_exception:
-            logger.exception(str(log_message), extra=log_data)
-        elif is_information:
-            logger.info(str(log_message), extra=log_data)
-        else:
-            logger.error(str(log_message), extra=log_data)
 
 
 class BaseModel(models.Model):

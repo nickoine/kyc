@@ -38,39 +38,22 @@ class TestClassBase(SimpleTestCase):
 
         # Mock db manager
         self.real_mock_manager = DBManager()
+        self.real_mock_manager.model = MagicMock()
         self.mock_manager = MagicMock(spec=DBManager)
-        self.mock_manager.model = self.mock_model # type: ignore[assignment]
 
         # Mock the transaction module
         self.mock_commit = patch("django.db.transaction.commit").start()
         self.mock_rollback = patch("django.db.transaction.rollback").start()
 
         # Mock logger
-        self.mock_logger = patch("kyc.common.base_model.logger").start()
+        self.mock_logger = patch(
+            "kyc_project.kyc.common.base_model.logger"
+        ).start()
         self.mock_info_logger = self.mock_logger.info
         self.mock_error_logger = self.mock_logger.error
         self.mock_exception_logger = self.mock_logger.exception
 
         self.mock_cache = patch("django.core.cache.cache").start()
-
-        # Mock environment variables (optional, uncomment if needed)
-        # self.mock_env = patch.dict(os.environ, {"CONFIG_VAR": "mocked"}).start()
-
-        # Mock Django signals (optional, uncomment if needed)
-        # self.mock_signal = patch("path.models.signals.post_save.send").start()
-
-        # Mock UUID generation (optional, uncomment if needed)
-        # self.mock_uuid = patch("uuid.uuid4", return_value=uuid.UUID("12345678-1234-5678-1234-567812345678")).start()
-
-        # Mock threading (optional, uncomment if needed)
-        # self.mock_thread = patch("threading.Thread.start").start()
-
-        # Mock async functions (optional, uncomment if needed)
-        # self.mock_async_function = patch("path.tasks.some_async_function", new_callable=AsyncMock).start()
-
-        # Freeze time for consistent timestamps (optional, uncomment if needed)
-        # self.frozen_time = freezegun.freeze_time("2025-01-01")
-        # self.frozen_time.start()
 
 
     def tearDown(self) -> None:
