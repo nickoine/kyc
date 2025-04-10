@@ -133,12 +133,12 @@ class Account(models.Model):
         verbose_name = _("Account")
         verbose_name_plural = _("Accounts")
         ordering = ['account_username']
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(verified=False) | models.Q(verification_date__isnull=False),
-                name="verified_has_date"
-            )
-        ]
+        # constraints = [
+        #     models.CheckConstraint(
+        #         check=models.Q(verified=False) | models.Q(verification_date__isnull=False),
+        #         name="verified_has_date"
+        #     )
+        # ]
         indexes = [
             models.Index(fields=['account_username', 'verified']) # Composite index
         ]
