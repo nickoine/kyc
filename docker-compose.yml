@@ -4,6 +4,11 @@ services:
     image: postgres:15
     container_name: postgres
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
@@ -18,11 +23,28 @@ services:
       timeout: 5s
       retries: 5
 
+
+  redis:
+    image: redis:7
+    container_name: redis
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    ports:
+      - "6379:6379"
+    restart: always
+    command: redis-server --save "" --appendonly no
+    sysctls:
+      - vm.overcommit_memory=1
+
+
   app:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: '0.5'
           memory: 512M
     build:
       context: .

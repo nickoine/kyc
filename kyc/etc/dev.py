@@ -4,6 +4,7 @@ import os
 DEBUG = True
 ENV = os.getenv("ENV", "dev").lower()
 USE_DOCKER_DB = os.getenv("USE_DOCKER_DB", "false").lower() == "true"
+CACHE_BACKEND = os.getenv("DJANGO_CACHE_BACKEND", "default")
 
 # Choose correct DB credentials based on ENV
 if ENV == "test":
@@ -19,6 +20,7 @@ else:  # default to dev
         "USER": os.getenv("DB_USER", "kyc_dev"),
         "PASSWORD": os.getenv("DB_PASSWORD", "password"),
         "PORT": os.getenv("DB_PORT", "5432"),
+
     }
 
 # Host logic
@@ -46,20 +48,29 @@ INSTALLED_APPS = [
     'kyc.src.responses',
 ]
 
-# Optional debug print
-print(f"[settings] ENV: {ENV} | DB: {db_config['NAME']} | Host: {db_config['HOST']} | Port: {db_config['PORT']}")
-
-
 # Print out the loaded values
 print("Loaded dev.py Database Configuration:")
 for key, value in DATABASES['default'].items():
     print(f"{key}: {value}")
 
 
-CACHEOPS = {
-    "accounts.account": {"ops": "all", "timeout": 60 * 15},
-    "questionnaires.questionnaire": {"ops": ("fetch",), "timeout": 60 * 30}
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/redis",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
 }
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+#         "LOCATION": "unique-dev"
+#     }
+# }
+
 
 
 
