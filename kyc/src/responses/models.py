@@ -44,6 +44,7 @@ class QuestionnaireSubmission(BaseModel):
     submitted_at = models.DateTimeField(
         null=True,
         blank=True,
+        db_index=True,
         verbose_name=_("Submitted At"),
         help_text=_("When the questionnaire was officially submitted (must be in year/month/days).")
     )
@@ -79,12 +80,21 @@ class QuestionnaireSubmission(BaseModel):
         unique_together = ('account', 'questionnaire')
 
         indexes = [
-            models.Index(
-                fields=["submission"],
+            Index(
+                fields=["is_submitted"],
                 name="submitted_only",
                 condition=models.Q(is_submitted=True)
+            ),
+            Index(
+                fields=["account", "is_submitted"],
+                name="idx_account_submitted"
+            ),
+            Index(
+                fields=["submitted_at"],
+                name="idx_submission_date"
             )
         ]
+
 
     def __str__(self):
         return f"{self.account} submission for {self.questionnaire} ({'submitted' if self.is_submitted else 'draft'})"
@@ -123,12 +133,17 @@ class QuestionResponse(BaseModel):
     class Meta:
         verbose_name = _("QuestionResponse")
         verbose_name_plural = _("QuestionResponses")
-        ordering = ['-submitted_at']
+        ordering = ['-answered_at']
 
         indexes = [
-            # Composite Fast querying by account/question
-            Index(fields=['account', 'question'], name='account_question_idx'),
-
+            Index(
+                fields=['submission'],
+                name='idx_by_submission'
+            ),
+            Index(
+                fields=['question'],
+                name='idx_by_question'
+            ),
             # Partial Filtering only on completed data
             # Index(
             #     fields=['submitted_at'],

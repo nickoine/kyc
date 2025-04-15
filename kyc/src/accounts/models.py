@@ -1,6 +1,6 @@
 # External
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
@@ -19,6 +19,20 @@ class User(BaseModel, AbstractUser):
 
     username = None
 
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name=_('groups'),
+        blank=True,
+        related_name='custom_user_groups',
+        help_text=_('The groups this user belongs to.')
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name=_('user permissions'),
+        blank=True,
+        related_name='custom_user_permissions',
+        help_text=_('Specific permissions for this user.')
+    )
     # Authentication fields
     email = models.EmailField(
         _('email_address'),
@@ -73,9 +87,9 @@ class User(BaseModel, AbstractUser):
         self.email = self.__class__.objects.normalize_email(self.email)
 
 
-    @property
-    def group_names(self) -> str:
-        return ", ".join(self.groups.values_list("name", flat=True))
+    # @property
+    # def group_names(self) -> str:
+    #     return ", ".join(self.groups.values_list("name", flat=True))
 
 
 class Account(models.Model):
