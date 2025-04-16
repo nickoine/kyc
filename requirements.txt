@@ -23,6 +23,7 @@ psycopg2-binary==2.9.10
 pytest==8.3.4
 python-dateutil==2.9.0.post0
 python-decouple==3.8
+redis==4.5.5
 six==1.17.0
 sqlparse==0.5.3
 tzdata==2024.2
