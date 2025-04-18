@@ -18,11 +18,13 @@ class Repository(ABC):
 
     _manager: DBManager[T] = None
 
+
     @property
     @abstractmethod
     def model(self) -> Type[T]:
         """Return the model class this repository works with."""
         pass
+
 
     @property
     def manager(self) -> DBManager[T]:
@@ -34,8 +36,8 @@ class Repository(ABC):
                 raise TypeError(f"{model_class_name} must have a valid Manager.")
 
             self._manager = self.model.objects
-
         return self._manager
+
 
     @abstractmethod
     def get_entity_by_id(self, obj_id: int) -> Optional[T]:
@@ -138,8 +140,10 @@ class BaseRepository(Generic[T], Repository):
 
         return instance
 
+
     def get_all_entities(self) -> List[T]:
-        """Fetch all instances with optional caching.
+        """
+        Fetch all instances with optional caching.
 
         Returns:
             List of all entity instances
@@ -213,7 +217,8 @@ class BaseRepository(Generic[T], Repository):
 
     # @transaction.atomic
     def update_entity(self, obj_id: int, **kwargs) -> Optional[T]:
-        """Update an instance and clear relevant cache.
+        """
+        Update an instance and clear relevant cache.
 
         Args:
             obj_id: ID of the entity to update
@@ -225,46 +230,55 @@ class BaseRepository(Generic[T], Repository):
         Raises:
             ValueError: If update fails
         """
-        try:
-            instance = self.manager.get_by_id(obj_id)
-            if not instance:
-                logger.warning(
-                    f"Update failed: {self.model.__name__} with ID {obj_id} not found"
-                )
-                return None
+        # Retrieve the instance
+        instance = self.manager.get_by_id(obj_id)
+        if not instance:
+            logger.warning(
+                f"Update failed: {self.model.__name__} with ID {obj_id} not found"
+            )
+            return None
 
+        # Perform the update
+        try:
+            instance.update(**kwargs)
+        except Exception as update_error:
+            logger.error(
+                f"Failed to update {self.model.__name__} {obj_id}: {str(update_error)}",
+                exc_info=True
+            )
+            raise ValueError(f"Update failed: {str(update_error)}") from update_error
+
+        # Clear cache if enabled
+        if self._cache_enabled:
             try:
-                instance.update(**kwargs)
-            except Exception as update_error:
+                self._cache_manager.delete(self._get_cache_key(obj_id))
+            except Exception as cache_error:
                 logger.error(
-                    f"Failed to update {self.model.__name__} {obj_id}: {str(update_error)}",
+                    f"Failed to clear cache for {self.model.__name__}: {obj_id}"
+                    f"{str(cache_error)}",
                     exc_info=True
                 )
-                raise ValueError(f"Update failed: {str(update_error)}") from update_error
+                # Continue despite cache error - business logic should still work
 
-            if self._cache_enabled:
-                try:
-                    self._cache_manager.delete(self._get_cache_key(obj_id))
-                except Exception as cache_error:
-                    logger.error(
-                        f"Failed to clear cache for {self.model.__name__}: {obj_id}"
-                        f"{str(cache_error)}",
-                        exc_info=True
-                    )
-                    # Continue despite cache error - business logic should still work
+        return instance
 
-            return instance
-
-        except Exception as e:
-            logger.exception(
-                f"Unexpected error updating {self.model.__name__}: {obj_id}, {e}"
-            )
-            raise  # Re-raise for caller handling
+    # def _clear_cache_safely(self, obj_id: str) -> None:
+    #     """Gracefully handle cache clearing without affecting main operation."""
+    #     try:
+    #         self._cache_manager.delete(self._get_cache_key(obj_id))
+    #     except Exception as cache_error:
+    #         logger.warning(
+    #             f"Cache clearance warning for {self.model.__name__}:{obj_id}. "
+    #             f"System will continue but cached data may be stale. Error: {cache_error}"
+    #         )
+    #         # Metrics or monitoring hook could be added here
+    #         # e.g., track_cache_clearance_failure()
 
 
     # @transaction.atomic
     def delete_entity(self, obj_id: int) -> Optional[T]:
-        """Delete an instance and clear its cache entry.
+        """
+        Delete an instance and clear its cache entry.
 
         Args:
             obj_id: ID of the entity to delete
@@ -275,114 +289,91 @@ class BaseRepository(Generic[T], Repository):
         Raises:
             ValueError: If deletion fails
         """
+        instance = self.manager.get_by_id(obj_id)
+        if not instance:
+            logger.warning(
+                f"Delete failed: {self.model.__name__} with ID {obj_id} not found"
+            )
+            return None
+
         try:
-            # Attempt to retrieve the instance
-            instance = self.manager.get_by_id(obj_id)
-            if not instance:
-                logger.warning(
-                    f"Delete failed: {self.model.__name__} with ID {obj_id} not found"
-                )
-                return None
+            instance.delete()
+        except Exception as delete_error:
+            logger.error(
+                f"Failed to delete {self.model.__name__} {obj_id}: {str(delete_error)}",
+                exc_info=True
+            )
+            raise ValueError(f"Deletion failed: {str(delete_error)}") from delete_error
 
-
+        if self._cache_enabled:
             try:
-                # Perform the deletion
-                instance.delete()
-            except Exception as delete_error:
+                self._cache_manager.delete(self._get_cache_key(obj_id))
+            except Exception as cache_error:
                 logger.error(
-                    f"Failed to delete {self.model.__name__} {obj_id}: {str(delete_error)}",
+                    f"Failed to clear cache for deleted {self.model.__name__}: {obj_id}"
+                    f"{str(cache_error)}",
                     exc_info=True
                 )
-                raise ValueError(f"Deletion failed: {str(delete_error)}") from delete_error
+                # Continue despite cache error - main deletion succeeded
 
-
-            # Clear cache if enabled
-            if self._cache_enabled:
-                try:
-                    self._cache_manager.delete(self._get_cache_key(obj_id))
-                except Exception as cache_error:
-                    logger.error(
-                        f"Failed to clear cache for deleted {self.model.__name__}: {obj_id}"
-                        f"{str(cache_error)}",
-                        exc_info=True
-                    )
-                    # Continue despite cache error - main deletion succeeded
-
-            return instance
-
-        except Exception as e:
-            logger.exception(
-                f"Unexpected error deleting {self.model.__name__}: {obj_id}"
-            )
-            raise  # Re-raise for caller handling
+        return instance
 
 
     # @transaction.atomic
     def bulk_create_entities(self, instances: List[T]) -> List[T]:
-        """Bulk create multiple instances and manage cache invalidation.
+        """
+        Bulk create instances and invalidate cache keys (if enabled).
 
-        Args:
-            instances: List of entity instances to create
+        This method performs a batch insert and optionally clears per-entity cache
+        based on each instance's `id`.
 
         Returns:
-            List of successfully created instances
+            List of successfully created instances.
 
         Raises:
-            ValueError: If bulk creation fails
+            ValueError: If database creation fails.
         """
         if not instances:
             logger.debug("Empty instances list provided for bulk create")
             return []
 
         try:
-            # Attempt bulk creation
-            try:
-                created_instances = self.manager.bulk_create_instances(instances)
-                logger.info(
-                    f"Successfully created {len(created_instances)}/{len(instances)} "
-                    f"{self.model.__name__} instances"
-                )
+            # Bulk insert
+            created_instances = self.manager.bulk_create_instances(instances)
+            logger.info(
+                f"Successfully created {len(created_instances)}/{len(instances)} "
+                f"{self.model.__name__} instances"
+            )
 
-            except Exception as create_error:
-                logger.error(
-                    f"Bulk create failed for {self.model.__name__}: {str(create_error)}",
-                    exc_info=True
-                )
-                raise ValueError(f"Bulk creation failed: {str(create_error)}") from create_error
-
-            # Handle cache invalidation if enabled
-            if self._cache_enabled and created_instances:
-                failed_cache_deletes = []
+            # Invalidate cache
+            if self._cache_enabled:
+                failed = []
                 for instance in created_instances:
 
                     try:
                         self._cache_manager.delete(self._get_cache_key(instance.id))
-
-                    except Exception as cache_error:
-                        failed_cache_deletes.append(instance.id)
+                    except Exception as e:
+                        failed.append(instance.id)
                         logger.warning(
-                            f"Failed to clear cache for new {self.model.__name__} "
-                            f"{instance.id}: {str(cache_error)}"
+                            f"Failed to invalidate cache for {self.model.__name__}({instance.id}): {e}"
                         )
 
-                if failed_cache_deletes:
+                if failed:
                     logger.warning(
-                        f"Failed to clear cache for {len(failed_cache_deletes)} "
-                        f"new {self.model.__name__} instances (IDs: {failed_cache_deletes})"
+                        f"Cache invalidation failed for {len(failed)} {self.model.__name__} instances: {failed}"
                     )
 
             return created_instances
 
         except Exception as e:
-            logger.exception(
-                f"Unexpected error during bulk create of {self.model.__name__} instances"
-            )
+            logger.exception(f"Unexpected error during bulk create of {self.model.__name__}: {e}")
             raise
 
 
     # @transaction.atomic
     def bulk_update_entities(self, instances: List[T], fields: List[str]) -> List[T]:
-        """Bulk update multiple instances and manage cache invalidation.
+        """
+        Bulk update multiple instances and manage cache invalidation.
 
         Args:
             instances: List of entity instances to update
@@ -403,51 +394,47 @@ class BaseRepository(Generic[T], Repository):
             raise ValueError("At least one field must be specified for update")
 
         try:
-            # Attempt bulk update
-            try:
-                updated_instances = self.manager.bulk_update_instances(instances, fields)
-                logger.info(
-                    f"Successfully updated {len(updated_instances)}/{len(instances)} "
-                    f"{self.model.__name__} instances (fields: {fields})"
-                )
-            except Exception as update_error:
-                logger.error(
-                    f"Bulk update failed for {self.model.__name__}: {str(update_error)}",
-                    exc_info=True
-                )
-                raise ValueError(f"Bulk update failed: {str(update_error)}") from update_error
+            updated_instances = self.manager.bulk_update_instances(instances, fields)
+            logger.info(
+                f"Successfully updated {len(updated_instances)}/{len(instances)} "
+                f"{self.model.__name__} instances (fields: {fields})"
+            )
 
             # Handle cache invalidation if enabled
             if self._cache_enabled and updated_instances:
                 failed_cache_deletes = []
+
                 for instance in updated_instances:
                     try:
-                        self._cache_manager.delete(self._get_cache_key(instance.id))
+                        self._cache_manager.delete(self._get_cache_key(getattr(instance, 'id', None)))
+
                     except Exception as cache_error:
-                        failed_cache_deletes.append(instance.id)
+                        failed_cache_deletes.append(getattr(instance, 'id', 'unknown'))
                         logger.warning(
-                            f"Failed to clear cache for updated {self.model.__name__} "
-                            f"{instance.id}: {str(cache_error)}"
+                            f"Failed to clear cache for {self.model.__name__} instance: "
+                            f"{getattr(instance, 'id', 'unknown')}. Error: {str(cache_error)}"
                         )
 
                 if failed_cache_deletes:
                     logger.warning(
                         f"Failed to clear cache for {len(failed_cache_deletes)} "
-                        f"updated {self.model.__name__} instances (IDs: {failed_cache_deletes})"
+                        f"{self.model.__name__} instances (IDs: {failed_cache_deletes})"
                     )
 
             return updated_instances
 
-        except Exception as e:
-            logger.exception(
-                f"Unexpected error during bulk update of {self.model.__name__} instances"
+        except Exception as update_error:
+            logger.error(
+                f"Unexpected error during bulk update of {self.model.__name__} instances",
+                exc_info=True
             )
-            raise
+            raise ValueError(f"Bulk update failed: {str(update_error)}") from update_error
 
 
     # @transaction.atomic
     def bulk_delete_entities(self, instances: List[T], **filters) -> Tuple[List[T], int]:
-        """Bulk delete multiple instances and manage cache invalidation.
+        """
+        Bulk delete multiple instances and manage cache invalidation.
 
         Args:
             instances: List of entity instances to delete (for validation)
@@ -465,28 +452,23 @@ class BaseRepository(Generic[T], Repository):
             logger.debug("Empty instances list provided for bulk delete")
             return [], 0
 
+        # Attempt bulk deletion
         try:
-            # Attempt bulk deletion
-            try:
-                deleted_instances = self.manager.bulk_delete_instances(**filters)
-                deleted_count = len(deleted_instances)
-                logger.info(
-                    f"Successfully deleted {deleted_count} {self.model.__name__} instances "
-                    f"(Filters: {filters})"
-                )
-            except Exception as delete_error:
-                logger.error(
-                    f"Bulk delete failed for {self.model.__name__}: {str(delete_error)}",
-                    exc_info=True
-                )
-                raise ValueError(f"Bulk deletion failed: {str(delete_error)}") from delete_error
+            deleted_instances = self.manager.bulk_delete_instances(**filters)
+            deleted_count = len(deleted_instances)
+            logger.info(
+                f"Successfully deleted {deleted_count} {self.model.__name__} instances."
+                f"(Filters: {filters})"
+            )
 
             # Handle cache invalidation if enabled
             if self._cache_enabled and deleted_instances:
                 failed_cache_deletes = []
                 for instance in deleted_instances:
+
                     try:
                         self._cache_manager.delete(self._get_cache_key(instance.id))
+
                     except Exception as cache_error:
                         failed_cache_deletes.append(instance.id)
                         logger.warning(
@@ -504,6 +486,6 @@ class BaseRepository(Generic[T], Repository):
 
         except Exception as e:
             logger.exception(
-                f"Unexpected error during bulk delete of {self.model.__name__} instances"
+                f"Unexpected error during bulk delete of {self.model.__name__} instances, {e}"
             )
             raise

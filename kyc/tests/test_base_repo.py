@@ -1,18 +1,10 @@
 # External
 
 # Internal
-from typing import Type
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 
-from .base_test import TestClassBase, ModelTest
+from .base_test import TestClassBase
 from kyc.common.base_repo import BaseRepository
-
-
-# class TestableRepo(BaseRepository[ModelTest]):
-#
-#     @property
-#     def model(self) -> Type[ModelTest]:
-#         return ModelTest
 
 
 class TestBaseRepoGet(TestClassBase):
@@ -139,6 +131,14 @@ class TestBaseRepoCreate(TestClassBase):
 
         self.repository._cache_enabled = False
 
+        self.mock_instance1 = MagicMock(id=1)
+        self.mock_instance2 = MagicMock(id=2)
+
+        self.expected_calls = [
+            call(f"modeltest:{self.mock_instance1.id}"),
+            call(f"modeltest:{self.mock_instance2.id}")
+        ]
+
 
     def test_create_entity_delete_cache_success(self):
         """Should create an entity and invalidate cache successfully."""
@@ -168,6 +168,7 @@ class TestBaseRepoCreate(TestClassBase):
         self.repository._cache_manager.delete = MagicMock()
 
         with patch("kyc.common.base_repo.logger.exception") as mock_logger:
+
             # Act
             result = self.repository.create_entity(name="Test")
 
@@ -181,14 +182,67 @@ class TestBaseRepoCreate(TestClassBase):
     def test_bulk_create_entities_success(self):
         """Should bulk create entities and invalidate cache successfully."""
 
-        pass
+        # Arrange
+        self.repository._cache_enabled = True
+
+        self.repository._manager.bulk_create_instances = MagicMock(
+            return_value=[self.mock_instance1, self.mock_instance2]
+        )
+        self.repository._cache_manager.delete = MagicMock()
+
+        # Act
+        self.repository.bulk_create_entities([self.mock_instance1, self.mock_instance2])
+
+        # Assert
+        self.repository._manager.bulk_create_instances.assert_called_once()
+        self.repository._cache_manager.delete.assert_has_calls(self.expected_calls, any_order=True)
+        self.assert_no_errors_logged()
 
 
     def test_bulk_create_entities_fail_and_handle_error(self):
-        """Should bulk create entities and invalidate cache successfully."""
+        """Should log exception and skip cache invalidation when bulk creation fails."""
 
+        # Arrange
+        self.repository._cache_enabled = True
+        self.repository._manager.bulk_create_instances.side_effect = Exception("Unexpected error")
+        self.repository._cache_manager.delete = MagicMock()
+
+        with patch("kyc.common.base_repo.logger.exception") as mock_logger:
+
+            # Act & Assert: Check exception raised
+            with self.assertRaises(Exception) as context:
+                self.repository.bulk_create_entities([self.mock_instance1, self.mock_instance2])
+
+            # Assert: exception was re-raised
+            self.assertIn("Unexpected error", str(context.exception))
+
+            # Assert: logger.exception was called with proper message
+            mock_logger.assert_called_once()
+            logged_msg = mock_logger.call_args[0][0]
+            self.assertIn("Unexpected error during bulk create", logged_msg)
+
+            # Assert: no cache deletion happened
+            self.repository._cache_manager.delete.assert_not_called()
+
+
+    def test_fetch_all_entities_success(self):
         pass
 
+
+    def test_fetch_all_instances_fail(self):
+        pass
+
+
+    def test_get_all_entities_with_cache_hit(self):
+        pass
+
+
+    def test_get_all_entities_with_cache_error(self):
+        pass
+
+
+    def test_get_all_entities_handle_exception_when_fetch_fail(self):
+        pass
 
 
 class TestBaseRepoUpdate(TestClassBase):
@@ -204,30 +258,103 @@ class TestBaseRepoUpdate(TestClassBase):
 
         self.repository._cache_enabled = False
 
+        self.mock_instance1 = MagicMock(id=1)
+        self.mock_instance2 = MagicMock(id=2)
 
-    def test_update_entity_delete_cache_success(self):
-        """Should update an entity and invalidate cache successfully."""
+        self.expected_calls = [
+            call(f"modeltest:{self.mock_instance1.id}"),
+            call(f"modeltest:{self.mock_instance2.id}")
+        ]
 
+
+    def test_update_entity_success_with_cache_invalidation(self):
+        """Verifies complete success flow including cache clearance"""
         pass
 
-    def test_update_entity_fail_and_handles_error(self):
-        """Should log exception and not call cache when update_instance raises error."""
 
+    def test_update_entity_handles_database_failure(self):
+        """Tests DB failure handling without cache interactions"""
         pass
+
+
+    def test_update_entity_not_found(self):
+        """Test update when entity doesn't exist"""
+        # Arrange
+
+        update_data = {"name": "New Name"}
+
+        # Properly mock the manager chain
+        self.repository._manager = MagicMock()
+        self.repository._manager.get_by_id = MagicMock()
+        self.repository._manager.get_by_id.return_value = None
+
+        # Act
+        with patch("kyc.common.base_repo.logger.warning") as mock_logger:
+            result = self.repository.update_entity(self.test_data, **update_data)
+
+        # Assert
+        self.assertIsNone(result)
+        mock_logger.assert_called_once()
+        self.assertIn("not found", mock_logger.call_args[0][0])
+
+        # Verify manager was called correctly
+        self.repository._manager.get_by_id.assert_called_once_with(self.test_data)
+
 
     def test_bulk_update_entities_success(self):
         """Should bulk update entities and invalidate cache successfully."""
+        # Arrange
+        self.repository._cache_enabled = True
 
-        pass
+        self.repository._manager.bulk_update_instances = MagicMock(
+            return_value=[self.mock_instance1, self.mock_instance2]
+        )
+        self.repository._cache_manager.delete = MagicMock()
+
+        # Act
+        result = self.repository.bulk_update_entities(
+            [self.mock_instance1, self.mock_instance2],
+            ["field1", "field2"]
+        )
+
+        # Assert
+        self.assertEqual(len(result), 2)
+        self.repository._manager.bulk_update_instances.assert_called_once_with(
+            [self.mock_instance1, self.mock_instance2],
+            ["field1", "field2"]
+        )
+        # Verify cache was cleared for both instances
+        self.assertEqual(self.repository._cache_manager.delete.call_count, 2)
 
 
-    def test_bulk_update_entities_fail_and_handles_error(self):
-        """Should bulk update entities and invalidate cache successfully."""
+    def test_bulk_update_entities_fail_and_handle_error(self):
+        """Should log exception and skip cache invalidation when bulk creation fails."""
 
-        pass
+        # Arrange
+        self.repository._cache_enabled = True
+        self.repository._manager.bulk_update_instances.side_effect = Exception("Unexpected error")
+        self.repository._cache_manager.delete = MagicMock()
+
+        with patch("kyc.common.base_repo.logger.error") as mock_logger:
+
+            # Act & Assert: Check exception raised
+            with self.assertRaises(ValueError) as context:
+                self.repository.bulk_update_entities([self.mock_instance1, self.mock_instance2], ["field"])
+
+            # Assert: exception was re-raised
+            self.assertIn("Bulk update failed: Unexpected error", str(context.exception))  # Updated message check
+
+            # Assert: logger.error was called with proper message
+            mock_logger.assert_called_once()
+            logged_msg = mock_logger.call_args[0][0]
+            self.assertIn("Unexpected error during bulk update", logged_msg)  # Updated message check
+
+            # Assert: no cache deletion happened
+            self.repository._cache_manager.delete.assert_not_called()
 
 
 class TestBaseRepoDelete(TestClassBase):
+
 
     def setUp(self) -> None:
         super().setUp()
@@ -235,30 +362,163 @@ class TestBaseRepoDelete(TestClassBase):
         self.test_data = 1
         self.repository = BaseRepository(model=self.real_test_model_as_class)
         self.repository._manager = self.mock_service
-        self.repository._cache_manager = self.mock_service
+        self.repository._cache_manager = MagicMock()
 
         self.repository._cache_enabled = False
+        self.mock_model.__name__ = "TestModel"
+
+        self.mock_instance1 = MagicMock(id=1)
+        self.mock_instance2 = MagicMock(id=2)
+
+        self.expected_calls = [
+            call(f"modeltest:{self.mock_instance1.id}"),
+            call(f"modeltest:{self.mock_instance2.id}")
+        ]
 
 
-    def test_delete_entity_delete_cache_success(self):
-        """Should delete an entity and clear cache successfully."""
+    def test_delete_entity_success_with_cache_invalidation(self):
+        """Verifies complete success flow including cache clearance"""
 
-        pass
+        # Arrange
+        mock_instance = self.mock_service
+        self.repository._manager.get_by_id.return_value = mock_instance
+        self.repository._cache_manager.delete = MagicMock()
 
-    def test_update_entity_fail_and_handles_error(self):
-        """Should log exception and not call cache when delete_instance raises error."""
+        # Act
+        result = self.repository.delete_entity(self.test_data)
 
-        pass
+        # Assert
+        mock_instance.delete.assert_called_once()
+        self.repository._cache_manager.delete.assert_called_once_with(
+            f"testmodel:{self.test_data}"
+        )
+        self.assertEqual(result, mock_instance)
+
+
+    def test_delete_entity_handles_database_failure(self):
+        """Tests DB failure handling without cache interactions"""
+
+        # Arrange
+        self.mock_service.delete.side_effect = Exception("DB error")
+        self.repository._manager.get_by_id.return_value = self.mock_service
+
+        # Act & Assert
+        with patch.object(self.repository._cache_manager, 'delete') as mock_cache_del, self.assertRaises(ValueError):
+            self.repository.delete_entity(self.test_data)
+
+        mock_cache_del.assert_not_called()
+
+
+    def test_delete_entity_handles_cache_failure_after_successful_delete(self):
+        """Tests cache failure after successful DB operation"""
+
+        # Arrange
+        mock_instance = MagicMock()
+        self.repository._manager.get_by_id.return_value = mock_instance
+        self.repository._cache_manager.delete.side_effect = Exception("Cache error")
+
+        # Act
+        with patch("kyc.common.base_repo.logger.error") as mock_logger:
+            result = self.repository.delete_entity(self.test_data)
+
+        # Assert
+        self.assertEqual(result, mock_instance)
+        mock_logger.assert_called_once()
+        self.assertIn("Failed to clear cache", mock_logger.call_args[0][0])
+
+
+    def test_delete_entity_returns_none_when_not_found(self):
+        """Tests 'not found' scenario with warning logging"""
+
+        # Arrange
+        self.repository._manager.get_by_id.return_value = None
+
+        # Act
+        with patch("kyc.common.base_repo.logger.warning") as mock_logger:
+            result = self.repository.delete_entity(self.test_data)
+
+        # Assert
+        self.assertIsNone(result)
+        mock_logger.assert_called_once()
+        self.assertIn("not found", mock_logger.call_args[0][0])
 
 
     def test_bulk_delete_entities_success(self):
-        """Should bulk delete entities and clear cache successfully."""
+        """Should bulk delete entities and invalidate cache successfully."""
 
-        pass
+        # Arrange
+        self.repository._cache_enabled = True
+
+        self.repository._manager.bulk_delete_instances = MagicMock(
+            return_value=[self.mock_instance1, self.mock_instance2]
+        )
+        self.repository._cache_manager.delete = MagicMock()
+
+        # Act
+        self.repository.bulk_delete_entities([self.mock_instance1, self.mock_instance2], filter="field")
+
+        # Assert
+        self.repository._manager.bulk_delete_instances.assert_called_once()
+        self.repository._cache_manager.delete.assert_has_calls(self.expected_calls, any_order=True)
+        self.assert_no_errors_logged()
 
 
-    def test_bulk_delete_entities_fail_and_handles_error(self):
-        """Should bulk update entities and invalidate cache successfully."""
+    def test_bulk_delete_entities_fail_and_handle_error(self):
+        """Should log exception and skip cache invalidation when bulk creation fails."""
 
-        pass
+        # Arrange
+        self.repository._cache_enabled = True
+        self.repository._manager.bulk_delete_instances.side_effect = Exception("Unexpected error")
+        self.repository._cache_manager.delete = MagicMock()
+
+        with patch("kyc.common.base_repo.logger.exception") as mock_logger:
+
+            # Act & Assert: Check exception raised
+            with self.assertRaises(Exception) as context:
+                self.repository.bulk_delete_entities([self.mock_instance1, self.mock_instance2])
+
+            # Assert: exception was re-raised
+            self.assertIn("Unexpected error", str(context.exception))
+
+            # Assert: logger.exception was called with proper message
+            mock_logger.assert_called_once()
+            logged_msg = mock_logger.call_args[0][0]
+            self.assertIn("Unexpected error during bulk delete", logged_msg)
+
+            # Assert: no cache deletion happened
+            self.repository._cache_manager.delete.assert_not_called()
+
+
+    def test_bulk_delete_handles_database_failure(self):
+        """Tests DB failure before cache operations"""
+
+        # Arrange
+        instances = [MagicMock(id=1)]
+        self.repository._manager.bulk_delete_instances.side_effect = Exception("DB error")
+
+        # Act & Assert
+        with patch.object(self.repository._cache_manager, 'delete') as mock_cache_del, \
+                self.assertRaises(ValueError):
+            self.repository.bulk_delete_entities(instances)
+
+        mock_cache_del.assert_not_called()
+
+
+    def test_bulk_delete_with_empty_list_early_return(self):
+        """Tests empty input handling"""
+
+        # Arrange
+        self.repository._manager.bulk_delete_instances = MagicMock()
+
+        # Act
+        with patch("kyc.common.base_repo.logger.debug") as mock_logger:
+            result, count = self.repository.bulk_delete_entities([])
+
+        # Assert
+        self.assertEqual(result, [])
+        self.assertEqual(count, 0)
+        mock_logger.assert_called_once_with(
+            "Empty instances list provided for bulk delete"
+        )
+        self.repository._manager.bulk_delete_instances.assert_not_called()
 
