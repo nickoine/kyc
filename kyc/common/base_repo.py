@@ -16,7 +16,7 @@ T = TypeVar("T", bound=models.Model)
 class Repository(ABC):
     """Abstract class that defines the contract for repositories."""
 
-    _manager: DBManager[T] = None
+    _manager: DBManager = None
 
 
     @property
@@ -87,7 +87,7 @@ class Repository(ABC):
         pass
 
 
-class BaseRepository(Generic[T], Repository):
+class BaseRepository(Repository, Generic[T]):
     """Base repository implementation with caching."""
 
     CACHE_TIMEOUT = 60 * 15

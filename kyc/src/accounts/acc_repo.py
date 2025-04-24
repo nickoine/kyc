@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # Internal
 from ...common import BaseRepository
-from .models import User, Account, Admin
+from .models import User, Account
 from typing import TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
@@ -72,7 +72,3 @@ class AccountRepository(BaseRepository[Account]):
     """Repository for handling Account model operations."""
     pass
 
-
-class AdminRepository(BaseRepository[Admin]):
-    """Repository for handling User model operations."""
-    pass

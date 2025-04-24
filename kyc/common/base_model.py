@@ -3,17 +3,17 @@ from __future__ import annotations
 # External
 from django.db import transaction, IntegrityError, DatabaseError
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.query import QuerySet
 from django.db import models
 
 # Internal
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, TypeVar, Generic
 import logging
 
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from django.db.models import QuerySet
     from typing import Optional, List
 
 
@@ -24,16 +24,16 @@ class AbstractManager(ABC):
     """Abstract manager for common query operations."""
 
     @abstractmethod
-    def get_by_id(self, obj_id: int | str) -> object | None:
-        return self
+    def get_by_id(self, obj_id: int | str) -> Optional[T]:
+        pass
 
 
     @abstractmethod
-    def create_instance(self, **kwargs) -> object | None:
-        return self
+    def create_instance(self, **kwargs) -> Optional[T]:
+        pass
 
 
-class DBManager(models.Manager[T], AbstractManager):
+class DBManager(models.Manager, AbstractManager, Generic[T]):
     """Manager for common query operations."""
 
 

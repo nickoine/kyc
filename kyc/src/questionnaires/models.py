@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from ...common.base_model import BaseModel
@@ -6,15 +5,11 @@ from ..accounts.models import Account
 
 
 class Questionnaire(BaseModel):
-    """
-    Represents a customizable form with multiple questions that can be assigned to accounts.
-    Supports versioning, internationalization, and lifecycle management.
-    """
+    """Represents a customizable form with multiple questions that can be assigned to accounts."""
 
     class Status(models.TextChoices):
         ACTIVE = 'active', _('Active')
         INACTIVE = 'inactive', _('Inactive')
-        DRAFT = 'draft', _('Draft')
 
     class Category(models.TextChoices):
         FINANCIAL = 'financial', _('Financial') # AND ??
@@ -61,7 +56,6 @@ class Questionnaire(BaseModel):
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
-        default=Status.DRAFT,
         db_index=True,
         verbose_name=_("Status"),
         help_text=_("Publication state of the questionnaire.")
@@ -72,7 +66,7 @@ class Questionnaire(BaseModel):
         help_text=_("Whether completion is mandatory for assigned accounts.")
     )
     is_public = models.BooleanField(
-        default=False,
+        default=True,
         verbose_name=_("Publicly Available"),
         help_text=_("Allows clients to complete this questionnaire voluntarily.")
     )
@@ -85,6 +79,11 @@ class Questionnaire(BaseModel):
         auto_now=True,
         verbose_name=_("Updated At"),
         help_text=_("Last modification timestamp.")
+    )
+    archived_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_("Archived At"),
+        help_text=_("When this questionnaire was archived.")
     )
 
 
