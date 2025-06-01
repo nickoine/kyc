@@ -1,10 +1,11 @@
 # External
 from django.db import models
+from django.db.models.functions import Lower
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
-from django.core.validators import MinLengthValidator
+from django.core.validators import RegexValidator
 
 # Internal
 from ...common.base_model import BaseModel
@@ -26,6 +27,7 @@ class User(BaseModel, AbstractUser):
         related_name='custom_user_groups',
         help_text=_('The groups this user belongs to.')
     )
+
     user_permissions = models.ManyToManyField(
         Permission,
         verbose_name=_('user permissions'),
@@ -33,6 +35,7 @@ class User(BaseModel, AbstractUser):
         related_name='custom_user_permissions',
         help_text=_('Specific permissions for this user.')
     )
+
     # Authentication fields
     email = models.EmailField(
         _('email_address'),
@@ -42,6 +45,7 @@ class User(BaseModel, AbstractUser):
             'unique': _("A user with that email already exists."),
         },
     )
+
     # Registration metadata
     registration_method = models.CharField(
         _('registration_method'),
@@ -60,6 +64,15 @@ class User(BaseModel, AbstractUser):
         _('date_joined'),
         auto_now_add=True,
         help_text=_('Timestamp when the user was created.')
+    )
+
+    ip_address = models.GenericIPAddressField(
+        verbose_name=_('IP address'),
+        protocol='both',
+        unpack_ipv4=True,
+        null=True,
+        blank=True,
+        help_text=_('The IP address from which the user registered.')
     )
 
     # Required fields for createsuperuser
@@ -87,16 +100,17 @@ class User(BaseModel, AbstractUser):
         self.email = self.__class__.objects.normalize_email(self.email)
 
 
-    # @property
-    # def group_names(self) -> str:
-    #     return ", ".join(self.groups.values_list("name", flat=True))
-
-
 class Account(models.Model):
     """
     Represents a verified user account in the system.
     Each account is uniquely tied to a single user and tracks verification status.
     """
+
+    GROUP_CHOICES = [
+        ('it', 'IT'),
+        ('blogger', 'Content Creator'),
+        ('other', 'Other')
+    ]
 
     user = models.OneToOneField(
         'User',
@@ -105,79 +119,119 @@ class Account(models.Model):
         verbose_name=_("User"),
         help_text=_("The single user associated with this account.")
     )
-    account_username = models.CharField(
-        _("username"),
-        max_length=150,
-        unique=True,
-        db_index=True,
-        validators=[MinLengthValidator(3)],
-        help_text=_("Unique public identifier for this account (3-150 characters).")
-    )
-    verified = models.BooleanField(
-        _("verified_status"),
+
+    is_staff = models.BooleanField(
         default=False,
-        db_index = True,
-        help_text=_("Designates whether this account passed verification checks.")
+        verbose_name=_("Staff status"),
+        help_text=_("Indicates whether the user has administrative privileges.")
     )
-    verification_date = models.DateTimeField(
-        _("verification_timestamp"),
-        null=True,
-        blank=True,
-        help_text=_("When verification was completed (auto-set when verified=True).")
+
+    status = models.BooleanField(
+        default=False,
+        verbose_name=_("Verification status"),
+        help_text=_("True = verified, False = unverified")
     )
-    created_at = models.DateTimeField(
-        _("created_at"),
+
+    completed_submissions = models.JSONField(
+        default=list,
+        verbose_name=_("Completed submissions"),
+        help_text=_("List of IDs representing completed submissions")
+    )
+
+    assigned_questionnaires = models.JSONField(
+        default=list,
+        verbose_name=_("Assigned questionnaires"),
+        help_text=_("List of IDs of privately assigned questionnaires")
+    )
+
+    username = models.CharField(
+        max_length=30,
+        unique=True,
+        verbose_name=_("Username"),
+        help_text=_("Public-facing username"),
+        validators=[RegexValidator(regex='^[a-zA-Z0-9_]+$')]
+    )
+
+    group = models.CharField(
+        max_length=20,
+        choices=GROUP_CHOICES,
+        verbose_name=_("Account group"),
+        help_text=_("Based on verification submission payload user account belongs to the group")
+    )
+
+    date_joined = models.DateTimeField(
         auto_now_add=True,
-        help_text=_("When this account was first registered.")
+        verbose_name=_("Date joined")
     )
-    updated_at = models.DateTimeField(
-        _("updated_at"),
-        auto_now=True,
-        help_text=_("When this account was last modified.")
-    )
-    last_login = models.DateTimeField(
-        _("last_login"),
+
+    date_verified = models.DateTimeField(
         null=True,
         blank=True,
-        help_text=_("Most recent authenticated access to this account.")
+        verbose_name=_("Verification date")
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active status")
+    )
+
+    last_login = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Last login")
     )
 
 
     class Meta:
         verbose_name = _("Account")
         verbose_name_plural = _("Accounts")
-        ordering = ['account_username']
-        # constraints = [
-        #     models.CheckConstraint(
-        #         check=models.Q(verified=False) | models.Q(verification_date__isnull=False),
-        #         name="verified_has_date"
-        #     )
-        # ]
-        indexes = [
-            models.Index(fields=['account_username', 'verified']) # Composite index
+        ordering = ['-status', 'username']  # Verified accounts first, then by username
+
+        constraints = [
+            # Ensure verification date exists for verified accounts
+            models.CheckConstraint(
+                check=models.Q(status=False) | models.Q(date_verified__isnull=False),
+                name="verified_accounts_require_date"
+            ),
+            # Prevent duplicate usernames case-insensitively
+            models.UniqueConstraint(
+                Lower('username'),
+                name='unique_lower_username'
+            )
         ]
+
+        indexes = [
+            # Covering index for user lookup performance
+            models.Index(
+                fields=['username', 'is_active'],
+                name='active_user_lookup_idx'
+            )
+        ]
+        # admin
         permissions = [
-            ("can_verify_account", "Can manually verify accounts"),
-            ("can_suspend_account", "Can suspend or deactivate accounts"),
+            ("view_full_account", "Can view all account details"),
+            ("change_account_status", "Can modify verification status"),
+            ("assign_questionnaire","Can assign questionnaire as private to user's account"),
+            ("assign_group","Can assign group to the user's account"),
+            # ("suspend_account", "Can deactivate accounts")
         ]
 
 
     def __str__(self) -> str:
-        return f"{self.account_username} ({'Verified' if self.verified else 'Unverified'})."
+        return f"{self.username} ({'Verified' if self.status else 'Unverified'})."
 
 
     def clean(self) -> None:
         """Validate verification logic before saving."""
 
         super().clean()
-        if self.verified and not self.verification_date:
+        if self.status and not self.date_verified:
             self.verification_date = timezone.now()
         raise ValidationError({
             'verification_date': _("Verification date can be set after account is verified.")
         })
 
-
     @property
     def age_days(self) -> int:
         """Calculate account age in days."""
-        return (timezone.now() - self.created_at).days if self.created_at else None
+        return (timezone.now() - self.date_joined).days if self.date_joined else None
