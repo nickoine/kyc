@@ -18,6 +18,14 @@ class User(BaseModel, AbstractUser):
     Uses email as the primary identifier instead of username.
     """
 
+    REGISTRATION_CHOICES = [
+        ('email', 'Email'),
+        ('google', 'Google'),
+        ('github', 'GitHub'),
+        ('facebook', 'Facebook'),
+        ('apple', 'Apple')
+    ]
+
     username = None
 
     groups = models.ManyToManyField(
@@ -46,17 +54,9 @@ class User(BaseModel, AbstractUser):
         },
     )
 
-    # Registration metadata
     registration_method = models.CharField(
-        _('registration_method'),
         max_length=20,
-        choices=[
-            ('email', 'Email'),
-            ('google', 'Google'),
-            ('facebook', 'Facebook'),
-            ('apple', 'AppleID')
-        ],
-        default='email',
+        choices=REGISTRATION_CHOICES,
         help_text=_('Method used for account registration.')
     )
 
@@ -66,13 +66,11 @@ class User(BaseModel, AbstractUser):
         help_text=_('Timestamp when the user was created.')
     )
 
-    ip_address = models.GenericIPAddressField(
-        verbose_name=_('IP address'),
-        protocol='both',
-        unpack_ipv4=True,
-        null=True,
+    metadata = models.JSONField(
+        default=dict,
         blank=True,
-        help_text=_('The IP address from which the user registered.')
+        verbose_name=_("Metadata"),
+        help_text=_("Optional context like browser, device, geolocation, etc.")
     )
 
     # Required fields for createsuperuser
@@ -85,7 +83,7 @@ class User(BaseModel, AbstractUser):
     class Meta:
         verbose_name = _('User')
         verbose_name_plural = _('Users')
-        ordering = ['email']
+        ordering = ['date_joined']
         indexes = [
             models.Index(fields=['email']),
         ]
@@ -106,42 +104,12 @@ class Account(models.Model):
     Each account is uniquely tied to a single user and tracks verification status.
     """
 
-    GROUP_CHOICES = [
-        ('it', 'IT'),
-        ('blogger', 'Content Creator'),
-        ('other', 'Other')
-    ]
-
     user = models.OneToOneField(
         'User',
         on_delete=models.CASCADE,
         related_name='account',
         verbose_name=_("User"),
         help_text=_("The single user associated with this account.")
-    )
-
-    is_staff = models.BooleanField(
-        default=False,
-        verbose_name=_("Staff status"),
-        help_text=_("Indicates whether the user has administrative privileges.")
-    )
-
-    status = models.BooleanField(
-        default=False,
-        verbose_name=_("Verification status"),
-        help_text=_("True = verified, False = unverified")
-    )
-
-    completed_submissions = models.JSONField(
-        default=list,
-        verbose_name=_("Completed submissions"),
-        help_text=_("List of IDs representing completed submissions")
-    )
-
-    assigned_questionnaires = models.JSONField(
-        default=list,
-        verbose_name=_("Assigned questionnaires"),
-        help_text=_("List of IDs of privately assigned questionnaires")
     )
 
     username = models.CharField(
@@ -152,11 +120,28 @@ class Account(models.Model):
         validators=[RegexValidator(regex='^[a-zA-Z0-9_]+$')]
     )
 
-    group = models.CharField(
-        max_length=20,
-        choices=GROUP_CHOICES,
-        verbose_name=_("Account group"),
-        help_text=_("Based on verification submission payload user account belongs to the group")
+    status = models.BooleanField(
+        default=False,
+        verbose_name=_("Verification status"),
+        help_text=_("True = verified, False = unverified")
+    )
+
+    assigned_questionnaires = models.ManyToManyField(
+        'Questionnaire',
+        blank=True,
+        related_name='assigned_to_account'
+    )
+
+    is_staff = models.BooleanField(
+        default=False,
+        verbose_name=_("Staff status"),
+        help_text=_("Indicates whether the user has administrative privileges.")
+    )
+
+    date_verified = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Verification date")
     )
 
     date_joined = models.DateTimeField(
@@ -164,10 +149,11 @@ class Account(models.Model):
         verbose_name=_("Date joined")
     )
 
-    date_verified = models.DateTimeField(
-        null=True,
+    group = models.ForeignKey(
+        'AccountGroup',
+        on_delete=models.SET_NULL,
         blank=True,
-        verbose_name=_("Verification date")
+        null=True
     )
 
     is_active = models.BooleanField(
@@ -235,3 +221,12 @@ class Account(models.Model):
     def age_days(self) -> int:
         """Calculate account age in days."""
         return (timezone.now() - self.date_joined).days if self.date_joined else None
+
+
+class AccountGroup(models.Model):
+    """Dynamic user's account group (e.g., IT, Blogger, Other), can be assigned after verification."""
+
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name

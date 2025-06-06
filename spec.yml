@@ -1,0 +1,1912 @@
+openapi: 3.0.0
+info:
+  title: KYC API
+  version: 1.0.0
+  description: API for managing users, accounts, questionnaires, questions, and KYC submissions.
+
+
+paths:
+  # --- Create User --- #
+  /api/users:
+    post:
+      summary: Create a new user
+      description: Register a single user with required fields.
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountForUnverifiedUser'
+        '400':
+          description: Invalid input or validation failed
+
+  # --- Single User Operations --- #
+  /api/users/{user_id}:
+    parameters:
+      - in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          description: Unique identifier of the user
+    get:
+      summary: Retrieve a user by ID
+      tags: [Users]
+      responses:
+        '200':
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountForVerifiedUser'
+        '401':
+          description: Authentication is invalid
+        '404':
+          description: User not registered. Proceed with signup.
+
+    patch:
+      summary: Update a user pass by ID
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User pass updated successfully
+        '400':
+          description: Invalid input
+        '404':
+          description: User not found
+
+    delete:
+      summary: Delete a user by ID
+      tags: [Users]
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          description: User not found
+##################################################################
+
+
+  # --- List Questionnaires --- #
+  /api/questionnaire/public:
+    get:
+      summary: Retrieve a list of public questionnaires
+      description: List public questionnaires for voluntarily submission.
+      tags: [Questionnaires]
+      responses:
+        '200':
+          description: List of public questionnaires retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublicQuestionnaire'
+
+        '400':
+            description: Fetch list of questionnaires failed
+        '403':
+            description: Access to public questionnaires is restricted until verification is completed.
+              Please submit the verification questionnaire to gain access.
+
+
+  /api/questionnaire/private:
+    get:
+      summary: Retrieve a list of private questionnaires
+      description: List private questionnaires for personal submission.
+      tags: [Questionnaires]
+      responses:
+        '200':
+          description: List of private questionnaires retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PrivateQuestionnaire'
+
+        '400':
+            description: Fetch list of questionnaires failed
+        '403':
+            description: Access to private questionnaires is restricted until verification is completed.
+              Please submit the verification questionnaire to gain access.
+
+  # --- Single Questionnaire Operations --- #
+  /api/questionnaire/public/{questionnaire_id}:
+    parameters:
+      - in: path
+        name: questionnaire_id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Unique identifier of the questionnaire
+
+    get:
+      summary: Get public questionnaire by ID
+      tags: [Questionnaires]
+      responses:
+        '200':
+          description: Single questionnaire retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicQuestionnaire'
+        '404':
+          description: Questionnaire not found
+
+  /api/questionnaire/private/{questionnaire_id}:
+    parameters:
+      - in: path
+        name: questionnaire_id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Unique identifier of the questionnaire
+
+    get:
+      summary: Get private questionnaire by ID
+      tags: [Questionnaires]
+      responses:
+        '200':
+          description: Single questionnaire retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateQuestionnaire'
+        '404':
+          description: Questionnaire not found
+##################################################################
+
+
+  # --- Create Submissions --- #
+  /api/questionnaire/submission/verification:
+    post:
+      summary: Create a new verification submission
+      description: Register a single submission on a single verification questionnaire.
+      tags: [Submissions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreate'
+      responses:
+        '201':
+          description: Submission created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionQRCode'
+        '400':
+          description: Invalid input or validation failed
+
+
+  /api/questionnaire/submission/verification/{token}/upload:
+    parameters:
+      - in: path
+        name: token
+        required: true
+        schema:
+            type: string
+            description: One-time token (OTT) obtained from the QR code
+    post:
+        summary: Upload verification documents via QR code
+        description: This endpoint allows a user to complete the second stage of verification by uploading identity documents and a selfie,
+          using a one-time token provided in the QR code.
+        tags: [Submissions]
+        requestBody:
+            required: true
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/SubmissionDocumentUpload'
+        responses:
+          '201':
+            description: Verification is successfull and documents linked to the submission
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/SubmissionStatusResponse'
+          '202':
+            description: Verification failed, but attempts remaining. Retry allowed.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/SubmissionStatusResponse'
+          '400':
+            description: Invalid or malformed token (e.g., wrong format or unsigned)
+          '404':
+            description: Submission not found for the given token
+          '409':
+            description: Conflict — Token has already been used
+          '410':
+            description: Token expired — Please request a new QR code
+          '423':
+            description: Too many failed attempts, pending admin review
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/SubmissionStatusResponse'
+
+
+  /api/questionnaire/submission/verification/{token}/new:
+    parameters:
+      - in: path
+        name: token
+        required: true
+        schema:
+          type: string
+        description: One-time token (OTT) from the original QR code; contains encoded metadata like `submission_id`.
+    get:
+      summary: Request a new QR code token for verification
+      description: >
+        Issues a new QR token for completing the verification process, if the original token has expired or was already used.
+        The original token embeds all required context (e.g., submission ID), so no additional client input is necessary.
+      tags: [Submissions]
+      responses:
+        '200':
+          description: New QR code token issued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionQRCode'
+        '404':
+          description: Submission not found or token points to invalid submission
+        '409':
+          description: Token has already been used and is not renewable
+        '410':
+          description: Token has expired and is beyond allowed grace period for renewal
+        '423':
+          description: Submission is under pending admin review due to excessive failed verification attempts
+
+
+  /api/questionnaire/submission/public:
+    post:
+      summary: Create a new public questionnaire submission
+      description: Register a single submission on a single public questionnaire.
+      tags: [Submissions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreate'
+      responses:
+        '201':
+          description: Submission created successfully
+        '400':
+          description: Invalid input or validation failed
+
+
+  /api/questionnaire/submission/private:
+    post:
+      summary: Create a new private questionnaire submission
+      description: Register a single submission on a single private questionnaire.
+      tags: [Submissions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionCreate'
+      responses:
+        '201':
+          description: Submission created successfully
+        '400':
+          description: Invalid input or validation failed
+
+
+##################################################################
+
+
+  # --- Admin operations --- #
+  # --- List Users --- #
+  /api/admin/users:
+    get:
+      summary: Retrieve a list of users
+      description: List users with optional filters and pagination.
+      tags: [Admin Users-Accounts]
+      parameters:
+        - in: query
+          name: registration_method
+          description: Filter users by registration method (e.g., email, social, admin)
+          schema:
+            type: string
+            enum: [email, google, apple, meta, github]
+
+        - in: query
+          name: limit
+          description: Maximum number of users to return (pagination)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+
+        - in: query
+          name: offset
+          description: Number of users to skip before starting to return results (pagination)
+          schema:
+            type: integer
+            minimum: 0
+
+      responses:
+        '200':
+          description: List of users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserForAdmin'
+        '404':
+            description: Fetch list of users failed
+  # --- Single User Operations --- #
+  /api/admin/users/{user_id}:
+    parameters:
+      - in: path
+        name: user_id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Unique identifier of the user
+    get:
+      summary: Retrieve a user by ID
+      tags: [Admin Users-Accounts]
+      responses:
+        '200':
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserForAdmin'
+        '404':
+          description: User not found
+  # --- List Accounts --- #
+  /api/admin/accounts:
+    get:
+      summary: Retrieve a list of users-accounts
+      description: List accounts with optional filters and pagination.
+      tags: [Admin Users-Accounts]
+      parameters:
+        - in: query
+          name: status
+          description: Filter accounts by status (unverified, verified)
+          schema:
+            type: string
+
+        - in: query
+          name: date_joined_from
+          description: Filter accounts registered on or after this date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+
+        - in: query
+          name: date_joined_to
+          description: Filter accounts registered on or before this date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+
+        - in: query
+          name: limit
+          description: Maximum number of users to return (pagination)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+
+        - in: query
+          name: offset
+          description: Number of users to skip before starting to return results (pagination)
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: List of accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserAccountForAdmin'
+        '404':
+            description: Fetch list of accounts failed
+  # --- Single Account Operations --- #
+  /api/admin/accounts/{account_id}:
+    parameters:
+      - in: path
+        name: account_id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Unique identifier of the account
+
+    get:
+      summary: Retrieve account-user by ID
+      tags: [Admin Users-Accounts]
+      responses:
+        '200':
+          description: Account details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountForAdmin'
+        '404':
+          description: Account not found
+
+    patch:
+      summary: Update an account by ID
+      tags: [Admin Users-Accounts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAccountUpdateByAdmin'
+      responses:
+        '200':
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAccountForAdmin'
+        '400':
+          description: Invalid input
+        '404':
+          description: Account not found
+
+    delete:
+      summary: Delete account by ID
+      tags: [Admin Users-Accounts]
+      responses:
+        '204':
+          description: Account deleted successfully
+        '404':
+          description: Account not found
+  # --- List and Create Questionnaires --- #
+  /api/admin/questionnaires:
+    get:
+      summary: Retrieve a list of questionnaires
+      description: List questionnaires with optional filters.
+      tags: [Admin Questionnaires]
+      parameters:
+        - in: query
+          name: status
+          description: Filter questionnaires by status (draft=true)
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: List of questionnaires retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuestionnaireForAdmin'
+
+        '400':
+            description: Fetch list of questionnaires failed
+    post:
+      summary: Create a new questionnaire
+      description: Register a single questionnaire.
+      tags: [Admin Questionnaires]
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionnaireCreateByAdmin'
+      responses:
+        '201':
+          description: Questionnaire created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionnaireForAdmin'
+        '400':
+          description: Invalid input or validation failed
+  # --- Single Questionnaire Operations --- #
+  /api/admin/questionnaires/{questionnaire_id}:
+    parameters:
+      - in: path
+        name: questionnaire_id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Unique identifier of the questionnaire
+
+    get:
+      summary: Get questionnaire by ID
+      tags: [Admin Questionnaires]
+      responses:
+        '200':
+          description: Single questionnaire retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionnaireForAdmin'
+        '404':
+          description: Questionnaire not found
+    put:
+      summary: Update questionnairebyID
+      tags: [Admin Questionnaires]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionnaireUpdateByAdmin'
+      responses:
+        '200':
+          description: Questionnaire updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionnaireForAdmin'
+        '400':
+          description: Invalid input
+        '404':
+          description: Questionnaire not found
+    patch:
+      summary: Patch questionnaire by ID
+      tags: [Admin Questionnaires]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionnairePatchByAdmin'
+      responses:
+        '200':
+          description: Questionnaire patched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionnaireForAdmin'
+        '400':
+          description: Invalid input
+        '404':
+          description: Questionnaire not found
+
+    delete:
+      summary: Delete questionnaire by ID
+      tags: [Admin Questionnaires]
+      responses:
+        '204':
+          description: Questionnaire deleted successfully
+        '404':
+          description: Questionnaire not found
+
+  # --- Bulk Questionnaire Operations --- #
+  /api/admin/questionnaires/bulk:
+    parameters:
+      - in: query
+        name: ids
+        required: true
+        description: Comma-separated list of questionnaires IDs (e.g. '1,2')
+        schema:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+          maxItems: 100
+        style: form
+        explode: false
+
+    post:
+      summary: Create multiple questionnaires
+      description: Bulk create up to 100 questionnaires in a single request.
+      tags: [Admin Questionnaires]
+      parameters: []  # Override inherited path-level parameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 100
+              items:
+                $ref: '#/components/schemas/QuestionnaireBulkCreateByAdmin'
+      responses:
+        '201':
+          description: Questionnaires created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuestionnaireForAdmin'
+                  failed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        reason:
+                          type: string
+        '400':
+          description: Validation failed
+
+
+    put:
+      summary: Update multiple questionnaires.
+      description: Bulk update of up to 100 questionnaires by passing their IDs as a query parameter.
+      tags: [Admin Questionnaires]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 100
+              items:
+                $ref: '#/components/schemas/QuestionnaireBulkUpdateByAdmin'
+      responses:
+        '200':
+          description: Questionnaires updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuestionnaireForAdmin'
+                  failed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        reason:
+                          type: string
+        '400':
+          description: Invalid input
+        '404':
+          description: One or more questionnaires not found
+
+
+    patch:
+      summary: Patch multiple questionnaires.
+      description: Bulk patch of up to 100 questionnaires by passing their IDs as a query parameter.
+      tags: [Admin Questionnaires]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 100
+              items:
+                $ref: '#/components/schemas/QuestionnaireBulkPatchByAdmin'
+      responses:
+        '200':
+          description: Questionnaires patched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  patched:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuestionnaireForAdmin'
+                  failed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        reason:
+                          type: string
+        '400':
+          description: Invalid input
+        '404':
+          description: One or more questionnaires not found
+
+
+    delete:
+      summary: Delete multiple questionnaires
+      description: Bulk delete questionnaires by passing their IDs as a query parameter.
+      tags: [Admin Questionnaires]
+      responses:
+        '204':
+          description: Questionnaires deleted successfully
+        '400':
+          description: Invalid or missing questionnaires IDs
+
+
+
+  # --- List and Create Questions --- #
+  /api/admin/questions:
+    get:
+      summary: Retrieve a list of questions
+      description: List questions with optional filters and pagination.
+      tags: [Admin Questions]
+      parameters:
+        - in: query
+          name: category
+          description: Filter questions by group (mandatory, general-based, IT, Music - specific)
+          schema:
+            type: string
+
+        - in: query
+          name: limit
+          description: Maximum number of questions to return (pagination)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: List of questions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuestionForAdmin'
+        '404':
+            description: Fetch list of questions failed
+
+
+    post:
+      summary: Create a new question
+      description: Register a single question.
+      tags: [Admin Questions]
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionCreateByAdmin'
+      responses:
+        '201':
+          description: Question created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionForAdmin'
+        '400':
+          description: Invalid input or validation failed
+
+  # --- Single Question Operations --- #
+  /api/admin/questions/{question_id}:
+    parameters:
+      - in: path
+        name: question_id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Unique identifier of the question
+
+    get:
+      summary: Retrieve the question by ID
+      tags: [Admin Questions]
+      responses:
+        '200':
+          description: Question details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionForAdmin'
+        '404':
+          description: Question not found
+    delete:
+      summary: Delete question by ID
+      tags: [Admin Questions]
+      responses:
+        '204':
+          description: Question deleted successfully
+        '404':
+          description: Question not found
+
+  # --- Bulk Question Operations --- #
+  /api/admin/questions/bulk:
+    parameters:
+      - in: query
+        name: ids
+        required: true
+        description: Comma-separated list of questions IDs (e.g. '1,2')
+        schema:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+          maxItems: 100
+        style: form
+        explode: false
+
+    post:
+      summary: Create multiple questions
+      description: Bulk create up to 100 questions in a single request.
+      tags: [Admin Questions]
+      parameters: []  # Override inherited path-level parameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              maxItems: 100
+              items:
+                $ref: '#/components/schemas/QuestionBulkCreateByAdmin'
+      responses:
+        '201':
+          description: Questions created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuestionForAdmin'
+                  failed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:
+                          type: integer
+                        reason:
+                          type: string
+        '400':
+          description: Invalid input or validation failed
+
+    delete:
+      summary: Delete multiple questions
+      description: Bulk delete questions by passing their IDs as a query parameter.
+      tags: [Admin Questions]
+      responses:
+        '204':
+          description: Questions deleted successfully
+        '400':
+          description: Invalid or missing questions IDs
+
+
+
+  # --- List Submissions --- #
+  /api/admin/submissions:
+    get:
+      summary: Retrieve a list of submissions
+      description: List submissions with optional filters and pagination.
+      tags: [Admin Submissions]
+      parameters:
+        - in: query
+          name: s_type
+          description: Filter submissions by type. Was submission from verif/regular questionnaire type.
+          schema:
+            type: string
+
+        - in: query
+          name: s_status
+          description: Filter submissions by status. Completed, failed, pending, approved, started.
+          schema:
+            type: string
+
+        - in: query
+          name: q_status
+          description: Filter submissions by questionnaire status. Was submission from public/private questionnaire.
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: List of submissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubmissionForAdmin'
+        '404':
+            description: Fetch list of submissions failed
+
+  # --- Single Submission Operations --- #
+  /api/admin/submissions/{submission_id}:
+    parameters:
+      - in: path
+        name: submission_id
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: Unique identifier of the submission
+
+    get:
+      summary: Retrieve the submission by ID
+      tags: [Admin Submissions]
+      responses:
+        '200':
+          description: Submission details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionForAdmin'
+        '404':
+          description: Submission not found
+    patch:
+      summary: Patch submission by ID
+      tags: [Admin Submissions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionPatchByAdmin'
+      responses:
+        '200':
+          description: Submission patched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionForAdmin'
+        '400':
+          description: Invalid input
+        '404':
+          description: Submission not found
+##################################################################
+
+
+components:
+  schemas:
+
+
+    UserCreate:
+      type: object
+      required:
+        - email
+        - password
+        - registration_method
+        - captcha
+      properties:
+        email:
+          type: string
+          format: email
+          description: The user's email address, used for login and communication.
+        password:
+          type: string
+          format: password
+          description: The user's password. Must meet system-defined security requirements.
+        registration_method:
+          type: string
+          enum: [email, google, github, facebook]
+          description: Indicates the method used during registration.
+        captcha:
+          type: boolean
+          default: false
+          description: CAPTCHA validation result to confirm the request is from a human user.
+
+
+    AccountForUnverifiedUser:
+      type: object
+      required:
+        - status
+        - username
+        - access_token
+      properties:
+        account_id:
+          type: integer
+          description: Unique identifier for the account.
+        user_id:
+          type: integer
+          description: Identifier of the user linked to this account.
+        is_staff:
+          type: boolean
+          default: false
+          description: Indicates whether the account has staff (admin) privileges.
+        status:
+          type: boolean
+          default: false
+          description: Verification status of the account (false = unverified, true = verified).
+        username:
+          type: string
+          description: Public-facing display name of the user.
+        access_token:
+          type: string
+          description: Authentication token (e.g., JWT or session token) for accessing protected endpoints.
+        assigned_questionnaire:
+          type: object
+          description: List of private questionnaire IDs assigned to the user for completion.
+          properties:
+            count:
+              type: integer
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/VerificationQuestionnaire'
+        submitted_questionnaire:
+          type: object
+          description: List of questionnaire name the user has already submitted.
+          properties:
+            count:
+              type: integer
+            results:
+              type: array
+              items:
+                type: string
+                default: none
+
+
+    AccountForVerifiedUser:
+      type: object
+      required:
+        - status
+        - username
+        - access_token
+      properties:
+        account_id:
+          type: integer
+          description: Unique identifier for the account.
+        user_id:
+          type: integer
+          description: Identifier of the user linked to this account.
+        is_staff:
+          type: boolean
+          default: false
+          description: Indicates whether the account has staff (admin) privileges.
+        status:
+          type: boolean
+          default: false
+          description: Verification status of the account (false = unverified, true = verified).
+        username:
+          type: string
+          description: Public-facing display name of the user.
+        access_token:
+          type: string
+          description: Authentication token (e.g., JWT or session token) for accessing protected endpoints.
+        assigned_questionnaire:
+          type: object
+          description: List of private questionnaire IDs assigned to the user for completion.
+          properties:
+            count:
+              type: integer
+            results:
+              type: array
+              items:
+                type: object
+        submitted_questionnaire:
+          type: object
+          description: List of questionnaire name the user has already submitted.
+          properties:
+            count:
+              type: integer
+            results:
+              type: array
+              items:
+                type: string
+                default: identity_check
+
+
+    UserUpdate:
+        type: object
+        required:
+            - password
+            - captcha
+        properties:
+            password:
+                type: string
+                format: password
+                minLength: 8
+            captcha:
+                type: boolean
+                default: false
+##################################################################
+
+
+    VerificationQuestionnaire:
+        type: object
+        properties:
+            questionnaire_id:
+                type: integer
+                description: Unique identifier of the questionnaire
+            is_verification:
+                type: boolean
+                default: true
+                description: Whether the questionnaire is verification questionnaire(must be true)
+            questionnaire_name:
+                type: string
+                description: Name of the questionnaire
+            questionnaire_category:
+                type: string
+                description: Category of the questionnaire
+            brief_description:
+                type: string
+                description: The description of the questionnaire
+            question_count:
+                type: integer
+                description: Total number of questions in the questionnaire
+            question_ids:
+                type: array
+                description: List of question IDs included in the questionnaire
+                items:
+                    type: integer
+            question_category_ids:
+                type: array
+                description: List of question category IDs included in the questionnaire
+                items:
+                    type: integer
+    PublicQuestionnaire:
+        type: object
+        properties:
+            questionnaire_id:
+                type: integer
+                description: Unique identifier of the questionnaire
+            questionnaire_name:
+                type: string
+                description: Name of the questionnaire
+            questionnaire_category:
+                type: string
+                description: Category of the questionnaire
+            brief_description:
+                type: string
+                description: The description of the questionnaire
+            is_public:
+                type: boolean
+                default: true
+                description: Whether the questionnaire is public
+            is_assigned:
+                type: boolean
+                default: false
+                description: Whether the questionnaire is assigned(must be false)
+            is_verification:
+                type: boolean
+                default: false
+                description: Whether the questionnaire is verification questionnaire(must be false)
+            question_count:
+                type: integer
+                description: Total number of questions in the questionnaire
+            question_ids:
+                type: array
+                description: List of question IDs included in the questionnaire
+                items:
+                    type: integer
+            question_category_ids:
+                type: array
+                description: List of question category IDs included in the questionnaire
+                items:
+                    type: integer
+    PrivateQuestionnaire:
+        type: object
+        properties:
+            questionnaire_id:
+                type: integer
+                description: Unique identifier of the questionnaire
+            questionnaire_name:
+                type: string
+                description: Name of the questionnaire
+            questionnaire_category:
+                type: string
+                description: Category of the questionnaire
+            brief_description:
+                type: string
+                description: The description of the questionnaire
+            is_assigned:
+                type: boolean
+                default: true
+                description: Whether the questionnaire is assigned(must be true)
+            is_public:
+                type: boolean
+                default: false
+                description: Whether the questionnaire is public
+            is_verification:
+                type: boolean
+                default: false
+                description: Whether the questionnaire is verification questionnaire(must be false)
+            question_count:
+                type: integer
+                description: Total number of questions in the questionnaire
+            question_ids:
+                type: array
+                description: List of question IDs included in the questionnaire
+                items:
+                    type: integer
+            question_category_ids:
+                type: array
+                description: List of question category IDs included in the questionnaire
+                items:
+                    type: integer
+##################################################################
+
+
+    Submission:
+      type: object
+      description: Metadata and context for a questionnaire submission by a user
+      required:
+        - account_id
+        - questionnaire_id
+        - submission_type
+        - questionnaire_status
+        - questionnaire_name
+        - started_at
+        - submitted_at
+      properties:
+        account_id:
+          type: integer
+          description: ID of the account that submitted the questionnaire.
+        questionnaire_id:
+          type: integer
+          description: ID of the associated questionnaire.
+        submission_type:
+          type: string
+          enum: [verification, regular]
+          description: Defines the purpose of the submission.
+            "verification" used exclusively for identity verification and always private.
+            "regular" used for all other questionnaires, which can be either public or private.
+        questionnaire_status:
+          type: string
+          enum: [private, public]
+          description: Specifies the accessibility of the questionnaire.
+            "private" assigned directly to a specific user.
+            Available only after the user is verified (except for the verification questionnaire itself).
+            "public" available to all verified users.
+        questionnaire_name:
+          type: string
+        # submission_status:
+        #   type: string
+        #   description: Current status of the submission.
+        #     -  For "public" or "private" submissions, the status is set to "completed" immediately after being saved to the database. For "verification" submissions, the status is initially "started" after submitting the text part. It can transition to "completed" (verification successful), "failed" (verification failed), or "pending" (too many failed attempts, requires manual admin review) and "approved" by an admin.
+        started_at:
+          type: string
+          format: date-time
+          description: Timestamp when the submission process was started
+        submitted_at:
+          type: string
+          format: date-time
+          description: Timestamp when the submission was completed
+
+
+    SubmissionPayload:
+        type: object
+        description: Actual answers or data submitted in the questionnaire.
+        properties:
+            responses:
+                type: array
+                description: List of responses provided by the user
+                items:
+                    type: object
+                    required:
+                        - reference_code
+                        - answer
+                    properties:
+                        question_id:
+                            type: integer
+                            description: ID of the question being answered
+                        reference_code:
+                            type: string
+                            description: Reference code of the question being answered
+                        answer:
+                            type: string
+                            description: User's answer to the question
+
+
+    SubmissionCreate:
+        type: object
+        description: Structure for creating a submission.
+        properties:
+            submission:
+                $ref: '#/components/schemas/Submission'
+            submission_payload:
+                $ref: '#/components/schemas/SubmissionPayload'
+
+
+    SubmissionQRCode:
+        type: object
+        description: Represents a QR code used to continue the verification process.
+          It includes a one-time token and a URL pointing to the secure document upload form.
+        required:
+            - submission_id
+            - token_for_qr_code
+            - expires_at
+        properties:
+            submission_id:
+                type: integer
+                description: The ID of the verification submission associated with this QR session.
+            token_for_qr_code:
+                type: string
+                description: One-time token (OTT) used to validate the document upload session. This token is time-limited and single-use.
+            expires_at:
+                type: string
+                format: date-time
+                description: Timestamp indicating when this QR code and its token will expire.
+
+
+    SubmissionDocumentUpload:
+        type: object
+        required:
+          - submission_id
+          - token_for_qr_code
+          - document_type
+          - document_file
+          - selfie_file
+        properties:
+            submission_id:
+                type: integer
+                description: The ID of the verification submission associated with this QR session.
+            token_for_qr_code:
+                type: string
+                description: One-time token (OTT) used to validate the document upload session. This token is time-limited and single-use.
+            document_type:
+                type: string
+                enum: [passport, national_id, driver_license]
+            document_file:
+                type: string
+                format: binary
+                description: Scanned document image or PDF
+            selfie_file:
+                type: string
+                format: binary
+                description: Selfie photo for face match
+
+
+    SubmissionStatusResponse:
+      type: object
+      required:
+        - status
+        - attempts_remaining
+      description: The current status of the submission
+      properties:
+        submission_id:
+          type: integer
+          description: ID of the related submission
+        status:
+          type: string
+          enum: [started, completed, failed, pending]
+          description: Current submission status
+        attempts_remaining:
+          type: integer
+          minimum: 0
+          description: Number of verification attempts left before the submission is under admin review
+##################################################################
+
+
+    UserForAdmin:
+      type: object
+      required:
+        - user_id
+      description: Basic user details for administrative access and monitoring.
+      properties:
+        user_id:
+          type: integer
+          description: Unique identifier of the user.
+        account_id:
+          type: integer
+          description: Associated account ID for the user.
+        email:
+          type: string
+          format: email
+          description: User's email address used for registration and communication.
+        registration_method:
+          type: string
+          description: Method through which the user registered (e.g., email, social login).
+        ip_address:
+          type: string
+          format: ipv4
+          description: IP address recorded during the user's last login session.
+
+
+    AccountForAdmin:
+      type: object
+      required:
+        - account_id
+      description: Detailed account information for administrative review and management.
+      properties:
+        account_id:
+          type: integer
+          description: Unique account ID.
+        user_id:
+          type: integer
+          description: Associated user ID.
+        is_staff:
+          type: boolean
+          description: Indicates whether the user has administrative privileges.
+        status:
+          type: boolean
+          default: false
+          description: Verification status of the account (true = verified, false = unverified).
+        completed_submissions:
+          type: array
+          description: List of IDs representing submissions successfully completed by the user.
+          items:
+            type: integer
+        assigned_questionnaires:
+          type: array
+          description: List of IDs of questionnaires privately assigned to this account.
+          items:
+            type: integer
+        username:
+          type: string
+          description: Public-facing username of the account.
+        group:
+          type: string
+          description: Role or user group the account belongs to.
+        date_joined:
+          type: string
+          format: date-time
+          description: Timestamp when the user created the account.
+        date_verified:
+          type: string
+          format: date-time
+          description: Timestamp when the account was verified.
+        is_active:
+          type: boolean
+          description: Indicates whether the user is currently active.
+        last_login:
+          type: string
+          format: date-time
+          description: Timestamp of the user's most recent login.
+
+
+
+
+    UserAccountForAdmin:
+        type: object
+        properties:
+            account:
+                $ref: '#/components/schemas/AccountForAdmin'
+            user:
+                $ref: '#/components/schemas/UserForAdmin'
+    UserAccountUpdateByAdmin:
+        type: object
+        required:
+          - account_id
+          - staff_id
+        description: Update user's account with fields.
+        properties:
+            account_id:
+                type: integer
+                description: ID of the account to update
+            staff_id:
+                type: integer
+                description: Who from the staff has updated the user's account
+            status:
+                type: boolean
+                default: false
+                description: Whether the account is verified (true = verified)
+            assign_questionnaire_ids:
+                type: integer
+                description: List of questionnaire IDs to assign as private to this account
+            group:
+                type: string
+                description: Group to assign to the user
+            is_staff:
+                type: boolean
+                default: false
+                description: Role to assign to the user
+##################################################################
+
+
+    QuestionnaireForAdmin:
+        type: object
+        properties:
+            questionnaire_id:
+                type: integer
+                description: Unique identifier of the questionnaire
+            questionnaire_name:
+                type: string
+                description: Name of the questionnaire
+            questionnaire_category:
+                type: string
+                description: Category of the questionnaire
+            brief_description:
+                type: string
+                description: The description of the questionnaire
+            questionnaire_type:
+                type: string
+                enum: [regular, verification]
+                description: Whether the questionnaire is verification or regular
+            questionnaire_status:
+                type: string
+                enum: [draft, public, private]
+                description: Specifies the accessibility of the questionnaire. If status is private, must be given user account ID to assign to.
+            question_count:
+                type: integer
+                description: Total number of questions in the questionnaire
+            question_reference_code:
+                type: object
+                description: List of questions included in the questionnaire
+                items:
+                    type: string
+            question_category_ids:
+                type: array
+                description: List of question category IDs included in the questionnaire
+                items:
+                    type: integer
+            assigned_to:
+                type: array
+                description: List of accounts IDs the questionnaire is private to
+                items:
+                    type: integer
+            # assigned_for_account_group_ids:
+            #     type: array
+            #     description: List of accounts groups IDs the questionnaire is private to
+            #     items:
+            #         type: integer
+            submitted_by:
+                type: array
+                description: List of users IDs the questionnaire is private to
+                items:
+                    type: integer
+            created_by:
+                type: integer
+                description: Admin the questionnaire was created by
+            created_at:
+                type: string
+                format: date-time
+                description: Timestamp when the questionnaire was created
+            updated_by:
+                type: integer
+                description: Admin the questionnaire was updated by
+            updated_at:
+                type: string
+                format: date-time
+                description: Timestamp when the questionnaire was last updated
+
+    QuestionnaireCreateByAdmin:
+        type: object
+        required:
+            - staff_id
+            - questionnaire_name
+            - questionnaire_category
+            - brief_description
+            - questionnaire_type
+            - questionnaire_status
+            - question_ids
+        properties:
+            questionnaire_name:
+                type: string
+                description: The name of the questionnaire
+            questionnaire_category:
+                type: string
+                description: The category of the questionnaire
+            brief_description:
+                type: string
+                description: The description of the questionnaire
+            questionnaire_type:
+                type: string
+                enum: [regular, verification]
+                description: Whether the questionnaire is verification or regular
+            questionnaire_status:
+                type: string
+                enum: [draft, public, private]
+                description: Specifies the accessibility of the questionnaire. If status is private, must be given user account ID to assign to.
+            staff_id:
+                type: integer
+                description: Who from the staff has created the questionnaire
+            question_ids:
+                type: array
+                description: List of question IDs must be included in the questionnaire
+                items:
+                    type: integer
+            question_category_ids:
+                type: array
+                description: List of question's category IDs can be included in the questionnaire
+                items:
+                    type: integer
+            assigned_to:
+                type: array
+                description: List of account IDs the questionnaire is assigned and become private to
+                items:
+                    type: integer
+            # assigned_to_group:
+            #     type: array
+            #     description: List of account groups IDs the questionnaire is assigned to
+            #     items:
+            #         type: integer
+
+    QuestionnaireUpdateByAdmin:
+        type: object
+        required:
+          - questionnaire_id
+          - staff_id
+        description: Update questionnaire fields. If questionnaire status is "public" or "private", questionnaire cannot be updated. Questionnaire status must be "draft" to perform modification on a questionnaire.
+        properties:
+            questionnaire_id:
+                type: integer
+                description: ID of the questionnaire to update
+            questionnaire_name:
+                type: string
+                description: Questionnaire name
+            questionnaire_category:
+                type: string
+                description: Questionnaire category
+            brief_description:
+                type: string
+                description: The description of the questionnaire
+            questionnaire_type:
+                type: string
+                description: Whether the questionnaire is verification or regular
+            questionnaire_status:
+                type: string
+                description: Specifies the accessibility of the questionnaire. If status is private, must be given user account ID to assign to.
+            question_ids:
+                type: array
+                items:
+                    type: integer
+                    description: List of question IDs to include
+            question_category_ids:
+                type: array
+                description: List of question's category IDs can be included in the questionnaire
+                items:
+                    type: integer
+            assigned_to:
+                type: array
+                description: List of account IDs the questionnaire is assigned and become private to
+                items:
+                    type: integer
+            staff_id:
+                type: integer
+                description: Who from the staff has created the questionnaire
+            # assigned_to_group:
+            #     type: array
+            #     description: List of account groups IDs the questionnaire is assigned to
+            #     items:
+            #         type: integer
+
+    QuestionnairePatchByAdmin:
+        type: object
+        required:
+            - questionnaire_id
+            - questionnaire_status
+            - assigned_to
+            - staff_id
+        description: Set the questionnaire status to draft to enable modification or deletion. Required for all questionnaires.
+        properties:
+            questionnaire_id:
+                type: integer
+                description: ID of the questionnaire
+            questionnaire_status:
+                type: string
+                enum: [draft, public, private]
+                description: Specifies the accessibility of the questionnaire. If status is private, must be given user account ID to assign to.
+            assigned_to:
+                type: array
+                description: List of account IDs the questionnaire is assigned and become private to
+                items:
+                    type: integer
+            staff_id:
+                type: integer
+                description: Who from the staff has created the questionnaire
+
+    QuestionnaireBulkCreateByAdmin:
+        type: array
+        minItems: 1
+        maxItems: 100
+        description: Bulk create multiple questionnaires (max 100 per request).
+        items:
+            $ref: '#/components/schemas/QuestionnaireCreateByAdmin'
+
+    QuestionnaireBulkUpdateByAdmin:
+        type: array
+        minItems: 1
+        maxItems: 100
+        description: Bulk update multiple questionnaires (max 100 per request).
+        items:
+            $ref: '#/components/schemas/QuestionnaireUpdateByAdmin'
+
+
+    QuestionnaireBulkPatchByAdmin:
+        type: array
+        minItems: 1
+        maxItems: 100
+        description: Bulk patch multiple questionnaires (max 100 per request).
+        items:
+            $ref: '#/components/schemas/QuestionnairePatchByAdmin'
+##################################################################
+
+
+    QuestionForAdmin:
+        type: object
+        properties:
+            question_id:
+                type: integer
+            question_type:
+                type: string
+                description: The type of the question(text, choice, file)
+            reference_code:
+                type: string
+                description: The actual text of the question
+            category:
+                type: string
+                description: Category of the question
+            explanation:
+                type: string
+                description: The explanation of the question
+            questionnaire_ids:
+                type: array
+                description: List of questionnaire IDs where question is used
+                items:
+                  type: integer
+            staff_id:
+                type: string
+                description: Who from the staff has created the question
+            created_at:
+                type: string
+                format: date-time
+                description: Timestamp when the question was created
+
+    QuestionCreateByAdmin:
+        type: object
+        required:
+            - question_type
+            - reference_code
+            - category
+            - question_description
+            - questionnaire_ids
+            - is_required
+            - staff_id
+        properties:
+            question_type:
+                type: string
+                description: The type of the question(text, choice, file)
+            reference_code:
+                type: string
+                description: Unique identifier for business logic
+            category:
+                type: string
+                description: Category of the question
+            question_description:
+                type: string
+                description: The description of the question
+            questionnaire_ids:
+                type: array
+                description: List of questionnaire IDs where question is used
+                items:
+                  type: integer
+            validation_rules:
+                type: object
+            is_required:
+                type: boolean
+            staff_id:
+                type: integer
+                description: Who from the staff has created the question
+
+    QuestionBulkCreateByAdmin:
+        type: array
+        minItems: 1
+        maxItems: 100
+        description: Bulk create multiple questions (max 100 per request).
+        items:
+            $ref: '#/components/schemas/QuestionCreateByAdmin'
+##################################################################
+
+
+    SubmissionForAdmin:
+        type: object
+        properties:
+            submission_id:
+                type: integer
+                description: Unique identifier of the submission
+            account_id:
+                type: integer
+                description: The user and account information of the submitter
+            questionnaire_id:
+                type: integer
+                description: The questionnaire that was submitted
+            payload_id:
+                type: integer
+                description: The payload that was given to questionnaire
+            payload_files_id:
+                type: integer
+                description: The files that were uploaded for identity verification(only if submission_type=verification)
+            submission_type:
+                type: string
+                enum: [regular, verification]
+            submission_status:
+                type: string
+                enum: [completed, started, failed, pending, approved]
+                description: Current submission status
+            questionnaire_status:
+                type: string
+                enum: [public, private]
+            started_at:
+                type: string
+                format: date-time
+                description: Timestamp when the submission was started
+            updated_at:
+                type: string
+                format: date-time
+                description: Timestamp when the submission was started
+            completed_at:
+                type: string
+                format: date-time
+                description: Timestamp when the submission was completed
+            is_orphan:
+                type: boolean
+
+    SubmissionPatchByAdmin:
+      type: object
+      required:
+        - submission_id
+        - submission_status
+        - staff_id
+      properties:
+        submission_id:
+          type: integer
+          description: Unique identifier of the submission
+        submission_status:
+          type: string
+          enum: [approved]
+          description: Status changed by an admin after completing manual ID verification
+##################################################################
+
+
+#
+#servers:
+#  # Added by API Auto Mocking Plugin
+#  - description: SwaggerHub API Auto Mocking
+#    url: https://virtserver.swaggerhub.com/bigb-43a/api/1.0.0
