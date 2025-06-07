@@ -1903,17 +1903,3 @@ components:
           enum: [approved]
           description: Status changed by an admin after completing manual ID verification
 ##################################################################
-
-
-#
-#servers:
-#  # Added by API Auto Mocking Plugin
-#  - description: SwaggerHub API Auto Mocking
-#    url: https://virtserver.swaggerhub.com/bigb-43a/api/1.0.0
-
-
-#
-#servers:
-#  # Added by API Auto Mocking Plugin
-#  - description: SwaggerHub API Auto Mocking
-#    url: https://virtserver.swaggerhub.com/bigb-43a/api/1.0.0
