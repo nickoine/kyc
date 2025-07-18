@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 # External
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Index, Q
@@ -11,7 +10,6 @@ from django.contrib.postgres.indexes import GinIndex
 # Internal
 from ..questionnaires.models import Questionnaire
 from ...common.base_model import BaseModel
-from .validators import QuestionResponseValidator
 
 
 class Submission(BaseModel):
@@ -44,15 +42,15 @@ class Submission(BaseModel):
         'accounts.Account',
         on_delete=models.SET_NULL,
         null=True,
-        related_name='submission',
+        related_name='submissions',
         verbose_name=_("Account"),
         help_text=_("The account that submitted the questionnaire.")
     )
 
     questionnaire = models.ForeignKey(
-        Questionnaire,
+        'questionnaires.Questionnaire',
         on_delete=models.PROTECT, # Don’t allow deleting forms with user data
-        related_name='submission',
+        related_name='submissions',
         verbose_name=_("Questionnaire"),
         help_text=_("The questionnaire being filled.")
     )

@@ -126,12 +126,6 @@ class Account(BaseModel):
         help_text=_("True = verified, False = unverified")
     )
 
-    assigned_questionnaires = models.ManyToManyField(
-        'questionnaires.Questionnaire',
-        blank=True,
-        related_name='assigned_to_account'
-    )
-
     is_staff = models.BooleanField(
         default=False,
         verbose_name=_("Staff status"),
@@ -197,7 +191,6 @@ class Account(BaseModel):
         permissions = [
             ("view_full_account", "Can view all account details"),
             ("change_account_status", "Can modify verification status"),
-            ("assign_questionnaire","Can assign questionnaire as private to user's account"),
             ("assign_group","Can assign group to the user's account"),
             # ("suspend_account", "Can deactivate accounts")
         ]

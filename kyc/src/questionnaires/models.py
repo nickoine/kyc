@@ -64,16 +64,14 @@ class Questionnaire(BaseModel):
         'accounts.Account',
         blank=True,
         related_name='submitted_questionnaires',
-        help_text = "List of accounts IDs the questionnaire was submitted by"
-
+        help_text = "Accounts the questionnaire was submitted by"
     )
 
     assigned_to = models.ManyToManyField(
         'accounts.Account',
         blank=True,
-        related_name='assigned_questionnaire',
-        help_text = "List of accounts IDs the questionnaire is assigned to (private)"
-
+        related_name='assigned_questionnaires',
+        help_text="Accounts that this questionnaire is assigned to"
     )
 
     created_by = models.ForeignKey(
