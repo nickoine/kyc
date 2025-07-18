@@ -98,7 +98,7 @@ class User(BaseModel, AbstractUser):
         self.email = self.__class__.objects.normalize_email(self.email)
 
 
-class Account(models.Model):
+class Account(BaseModel):
     """
     Represents a verified user account in the system.
     Each account is uniquely tied to a single user and tracks verification status.
@@ -127,7 +127,7 @@ class Account(models.Model):
     )
 
     assigned_questionnaires = models.ManyToManyField(
-        'Questionnaire',
+        'questionnaires.Questionnaire',
         blank=True,
         related_name='assigned_to_account'
     )
@@ -223,7 +223,7 @@ class Account(models.Model):
         return (timezone.now() - self.date_joined).days if self.date_joined else None
 
 
-class AccountGroup(models.Model):
+class AccountGroup(BaseModel):
     """Dynamic user's account group (e.g., IT, Blogger, Other), can be assigned after verification."""
 
     name = models.CharField(max_length=100, unique=True)

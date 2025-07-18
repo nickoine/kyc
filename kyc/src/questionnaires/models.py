@@ -61,7 +61,7 @@ class Questionnaire(BaseModel):
     )
 
     submitted_by = models.ManyToManyField(
-        'Account',
+        'accounts.Account',
         blank=True,
         related_name='submitted_questionnaires',
         help_text = "List of accounts IDs the questionnaire was submitted by"
@@ -69,7 +69,7 @@ class Questionnaire(BaseModel):
     )
 
     assigned_to = models.ManyToManyField(
-        'Account',
+        'accounts.Account',
         blank=True,
         related_name='assigned_questionnaire',
         help_text = "List of accounts IDs the questionnaire is assigned to (private)"
@@ -77,7 +77,7 @@ class Questionnaire(BaseModel):
     )
 
     created_by = models.ForeignKey(
-        'Account',
+        'accounts.Account',
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_questionnaire'
@@ -90,7 +90,7 @@ class Questionnaire(BaseModel):
     )
 
     updated_by = models.ForeignKey(
-        'Account',
+        'accounts.Account',
         on_delete=models.SET_NULL,
         null=True,
         related_name='updated_questionnaire'
@@ -190,16 +190,8 @@ class Question(BaseModel):
         help_text=_("Configurable validation (e.g., {'min_length': 2, 'max_length': 100}).")
     )
 
-    questionnaire = models.ManyToManyField(
-        'Questionnaire',
-        through='QuestionnaireQuestion',
-        related_name='questions',
-        verbose_name=_("Questionnaires"),
-        help_text=_("Forms where this question appears.")
-    )
-
     created_by = models.ForeignKey(
-        'Account',
+        'accounts.Account',
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_question'
@@ -231,18 +223,45 @@ class Question(BaseModel):
         return f"Question [{self.reference_code}] ({self.type})"
 
 
-class QuestionGroup(models.Model):
+class QuestionGroup(BaseModel):
     """Questions can be grouped in categories."""
 
     name = models.CharField(max_length=100, unique=True)
 
 
-class QuestionnaireQuestion(models.Model):
-    questionnaire = models.ForeignKey('Questionnaire', on_delete=models.CASCADE)
-    question = models.ForeignKey('Question', on_delete=models.PROTECT)
+class QuestionnaireQuestion(BaseModel):
+    """
+    Join table to associate Questions with Questionnaires in a specific order.
+    """
+    questionnaire = models.ForeignKey(
+        'Questionnaire',
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+    question = models.ForeignKey(
+        'Question',
+        on_delete=models.CASCADE,
+        related_name='questionnaire_items'
+    )
+    order_index = models.PositiveIntegerField(
+        help_text='Position of this question within the questionnaire'
+    )
 
     class Meta:
-        unique_together = ('questionnaire', 'question')
+        # Prevent duplicate questions and index collisions within a questionnaire
+        unique_together = (
+            ('questionnaire', 'question'),
+            ('questionnaire', 'order_index'),
+        )
+        indexes = [
+            models.Index(fields=['questionnaire', 'order_index'], name='qitem_order_idx'),
+        ]
+        ordering = ['order_index']
+        verbose_name = 'Questionnaire Item'
+        verbose_name_plural = 'Questionnaire Items'
+
+    def __str__(self):
+        return f"{self.questionnaire.id} – {self.question.id} @ {self.order_index}"
 
 
 class QuestionnaireQuestionGroup(models.Model):

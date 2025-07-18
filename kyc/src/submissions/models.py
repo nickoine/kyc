@@ -41,8 +41,9 @@ class Submission(BaseModel):
         )
 
     account = models.ForeignKey(
-        'Account',
+        'accounts.Account',
         on_delete=models.SET_NULL,
+        null=True,
         related_name='submission',
         verbose_name=_("Account"),
         help_text=_("The account that submitted the questionnaire.")
@@ -65,7 +66,7 @@ class Submission(BaseModel):
     )
 
     updated_by = models.ForeignKey(
-        'Account',
+        'accounts.Account',
         on_delete=models.SET_NULL,
         null=True,
         related_name='updated_submission'
@@ -147,7 +148,7 @@ class SubmissionPayload(BaseModel):
         ordering = ['-saved_at']
 
         indexes = [
-            Index(fields=['submission'], name='idx_by_submission'),
+            Index(fields=['submission'], name='index_by_submission'),
             GinIndex(fields=['payload'], name='payload_gin_idx'),
         ]
 
@@ -197,10 +198,10 @@ class SubmissionDocument(BaseModel):
     document_file = models.FileField(
         upload_to='documents/'
     )
-
-    selfie_file = models.ImageField(
-        upload_to='selfies/'
-    )
+    #
+    # selfie_file = models.ImageField(
+    #     upload_to='selfies/'
+    # )
 
     uploaded_at = models.DateTimeField(
         auto_now_add=True

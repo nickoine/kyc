@@ -45,7 +45,8 @@ INSTALLED_APPS = [
 
     'kyc.src.accounts',
     'kyc.src.questionnaires',
-    'kyc.src.responses',
+    'kyc.src.submissions',
+    'kyc.src.verification',
 ]
 
 # Print out the loaded values
