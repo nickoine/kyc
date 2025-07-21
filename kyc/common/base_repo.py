@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # External
 from django.db import models
-from django.db import transaction
 
 # Internal
 from abc import ABC, abstractmethod
