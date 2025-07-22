@@ -1,28 +1,53 @@
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Type
+# Built-in
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
-from rest_framework import serializers, status
-from rest_framework.response import Response
+# External
+from django.db.models import QuerySet
 
-from ..models import Questionnaire
+# Internal
 from ..repo import QuestionnaireRepository
+
+if TYPE_CHECKING:
+    from typing import Any, Dict, Optional, Tuple
+    from ..models import Questionnaire
+
 
 class QuestionnaireService:
     """
-    Encapsulates business logic and response construction for questionnaires.
+    Encapsulates business logic for Questionnaire entities.
     """
-    def __init__(self, repository: QuestionnaireRepository):
-        self.repo = repository
 
-    def get_questionnaires(self, params: Dict[str, Any]) -> Response:
+    @staticmethod
+    def list_questionnaires(status: Optional[str] = None) -> Tuple[int, QuerySet[Questionnaire]]:
         """
-        Fetch, serialize, and return questionnaire list.
+        Retrieve questionnaires, optionally filtering by status.
+
+        :param status: Optional status to filter by (e.g., 'draft', 'public', 'private').
+        :return: A tuple of (total_count, queryset) where:
+                 - total_count is the number of matched questionnaires.
+                 - queryset is a Django QuerySet of Questionnaire instances.
         """
-        pass
+        q_repo = QuestionnaireRepository()
+
+        if status:
+            queryset: QuerySet[Questionnaire] = q_repo.manager.filter_by(status=status)
+        else:
+            queryset: QuerySet[Questionnaire] = q_repo.manager.get_all()
+
+        total: int = queryset.count()
+        return total, queryset
 
 
-    def create_questionnaire(self, data: Dict[str, Any]) -> Response:
+    @staticmethod
+    def create_questionnaire(data: Dict[str, Any]) -> Questionnaire:
         """
-        Build, persist, serialize, and return a new questionnaire.
+        Create and persist a new Questionnaire from validated data.
+
+        :param data: Dict of fields matching Questionnaire model.
+        :return: The newly created Questionnaire instance.
         """
-        pass
+        repo = QuestionnaireRepository()
+        instance = repo.manager.create_instance(**data)
+        return instance
+

@@ -22,7 +22,9 @@ class Repository(ABC):
     @abstractmethod
     def model(self) -> Type[T]:
         """Return the model class this repository works with."""
-        pass
+        if not getattr(self, "_model", None):
+            raise ValueError(f"{self.__class__.__name__} must define a `_model` class attribute.")
+        return self._model  # type: ignore[return-value]
 
 
     @property
@@ -31,7 +33,8 @@ class Repository(ABC):
 
         if self._manager is None:
             if not hasattr(self.model, "objects") or not isinstance(self.model.objects, models.Manager):
-                model_class_name = self.model.__name__ if isinstance(self.model, type) else type(self.model).__name__
+                model_class_name = self.model.__name__ if isinstance(self.model, type) else type(
+                    self.model).__name__
                 raise TypeError(f"{model_class_name} must have a valid Manager.")
 
             self._manager = self.model.objects
@@ -87,25 +90,32 @@ class Repository(ABC):
 
 
 class BaseRepository(Repository, Generic[T]):
-    """Base repository implementation with caching."""
+
+    """Base repository implementation with caching.
+       Subclasses must define a `_model` class attribute pointing to a Django model."""
 
     CACHE_TIMEOUT = 60 * 15
     CACHE_KEY_FORMAT: ClassVar[str] = "{app_label}.{model_name}.{id}"
 
     _model: Type[T] = None
     _cache_enabled: bool = False
-    _cache_manager: CacheManager = CacheManager()
+    _cache_manager: CacheManager
 
 
-    def __init__(self, model: Type[T], cache_enabled: bool = False) -> None:
+    def __init__(self, model: Type[T] = None, cache_enabled: bool = False) -> None:
         """Initialize repository with a model and caching option."""
-        self._model = model
+
+        self._model = model or self._model
+        if self._model is None:
+            raise ValueError("Repository must have a ._model defined")
         self._cache_enabled = cache_enabled
+        self._cache_manager = CacheManager()
+
 
 
     @property
     def model(self) -> Type[T]:
-        return self._model
+        return super().model
 
 
     @property

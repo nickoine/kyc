@@ -168,11 +168,6 @@ class Account(BaseModel):
         ordering = ['-status', 'username']  # Verified accounts first, then by username
 
         constraints = [
-            # Ensure verification date exists for verified accounts
-            models.CheckConstraint(
-                check=models.Q(status=False) | models.Q(date_verified__isnull=False),
-                name="verified_accounts_require_date"
-            ),
             # Prevent duplicate usernames case-insensitively
             models.UniqueConstraint(
                 Lower('username'),
